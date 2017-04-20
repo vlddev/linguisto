@@ -1,0 +1,57 @@
+<ui:composition template="/template/layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+
+	<ui:define name="metadata">
+	    <f:metadata>
+		    <f:viewParam name="hash" value="#{signin.confirmId}"/>
+		    <f:event type="preRenderView" listener="#{signin.confirmRegistration(signin.confirmId)}"/>
+	    </f:metadata>
+    </ui:define>
+ 
+   	<ui:define name="title">Лінгвісто: Створити обліковий запис</ui:define>
+ 
+ 	<ui:define name="content">
+ 		<p:panel header="Створити обліковий запис" style="margin-bottom:20px">
+				<ui:fragment rendered="#{!login.loggedIn and empty signin.confirmUser}">
+				<h:form id="signInForm" prependId="false">
+					<p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
+					<!-- <h:outputText rendered="#{signin.error != null}" value="#{signin.error}" />
+					 -->
+					 <h:panelGrid id="grid" columns="2" cellpadding="5">
+						<p:outputLabel for="username" value="Користувач: " />
+						<p:inputText id="username" value="#{signin.userName}" required="true" />
+	
+						<p:outputLabel for="email" value="Електронна пошта: " />
+						<p:inputText id="email" value="#{signin.userEmail}" required="true" />
+	
+						<p:outputLabel for="pwd" value="Пароль: " />
+						<p:password id="pwd" value="#{signin.pwd}" match="pwd2" required="true" feedback="true"
+							promptLabel="Введіть, будь ласка, пароль"
+							weakLabel="слабкий пароль"
+                    		goodLabel="добрий пароль"
+                    		strongLabel="сильний пароль"/>
+	
+						<p:outputLabel for="pwd2" value="Повторіть пароль: " />
+						<p:password id="pwd2" value="#{signin.pwd2}" required="true"/>
+					</h:panelGrid>
+					<p:commandButton value="Зареєструватися" action="#{signin.signin()}" update="signInForm"/>
+				</h:form>
+			</ui:fragment>
+			<ui:fragment rendered="#{login.loggedIn}">
+				<h:form>
+					<h:outputText value="Ви вже ввійшли." />
+				</h:form>
+			</ui:fragment>
+			<ui:fragment rendered="#{not empty signin.confirmUser}">
+				<h:form>
+					<h:outputText value="Реєстрацію користувача #{signin.confirmUser.name} успішно підтверджено. Тепер ви можете " />
+					<p:commandLink value="увійти." onclick="PF('dlglogin').show();" />
+				</h:form>
+			</ui:fragment>
+		</p:panel>
+	</ui:define>
+</ui:composition>

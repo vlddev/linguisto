@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+  
+<hibernate-configuration>
+    <session-factory>
+        <!-- Datasource -->
+        <property name="connection.datasource">java:jboss/datasources/MySQLDS</property>         
+        <!-- SQL dialect -->
+        <property name="dialect">org.hibernate.dialect.MySQLDialect</property>
+ 
+        <!-- Enable Hibernate's automatic session context management -->
+        <property name="current_session_context_class">thread</property>
+ 
+ 		<property name="cache.use_second_level_cache">false</property>
+ 		<property name="hibernate.cache.use_second_level_cache">false</property>
+ 		
+        <!-- Enable the second-level cache  -->
+        <!-- property name="cache.provider_class">org.hibernate.cache.EhCacheProvider</property-->
+         
+        <!-- Echo all executed SQL to stdout -->
+        <property name="show_sql">true</property>
+         
+        <property name="hbm2ddl.auto">validate</property>
+  
+  		<!-- mapping files -->
+        <mapping resource="Dict.hbm.xml"/>
+          
+    </session-factory>
+</hibernate-configuration>

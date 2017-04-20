@@ -1,0 +1,35 @@
+<ui:composition template="/template/layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+ 
+ 	<ui:define name="title">Всі публікації</ui:define>
+ 
+ 	<ui:define name="content">
+		<h:panelGrid>
+			<p:dataTable value="#{publicationBean.getPublications()}" var="article" emptyMessage="нічого не знайдено">
+				<f:facet name="header">
+					<h:outputText value="Всі публікації" />
+				</f:facet>
+				<p:column>
+					<f:facet name="date">
+						<h:outputText value="Дата" />
+					</f:facet>
+					<h:outputText value="#{article.publishDate}" >
+						<f:convertDateTime type="datetime" pattern="dd.MM.yyyy hh:mm:ss"/>
+					</h:outputText>
+				</p:column>
+				<p:column>
+					<f:facet name="title">
+						<h:outputText value="Назва" />
+					</f:facet>
+					<h:link outcome="publication" value="#{article.title}" >
+						<f:param name="id" value="#{article.id}"/>
+					</h:link>
+				</p:column>
+			</p:dataTable>
+		</h:panelGrid>
+    </ui:define>
+</ui:composition>

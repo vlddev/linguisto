@@ -1,0 +1,198 @@
+<ui:composition template="/template/layout.xhtml" 
+    xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+
+	<ui:define name="metadata">
+	    <f:metadata>
+		    <f:viewParam name="w" value="#{freqdict.preRendWord}"/>
+		    <f:viewParam name="browse" value="#{freqdict.browserPos}"/>
+		    <f:event type="preRenderView" listener="#{freqdict.preRenderSearch(freqdict.preRendWord)}"/>
+	    </f:metadata>
+    </ui:define>
+
+	<ui:define name="title">Лінгвісто: Частотний словник української публіцистики</ui:define>
+	
+	<ui:define name="metatags">
+ 		<meta name="description" 
+ 			content="Частотний словник української публіцистики"/>
+ 	</ui:define> 		
+	
+ 	<ui:define name="content">
+   		<h:form id="main_form">
+		    <p:tabView id="dictTabView" widgetVar="dictTabView" dynamic="true">
+		        <p:tab id="dictTab" title="Частотний словник">
+		        	<p:focus context="dictTab"/>
+					<p:inputText id="wordquery" value="#{freqdict.searchWord}" size="40" />
+					<p:spacer width="5" />
+					<p:commandButton id="searchButton" value="Пошук"
+						icon="ui-icon-search" ajax="false"
+						action="#{freqdict.search(freqdict.searchWord)}"/>
+					<br />
+					<h:outputText value="Кількість статей в словнику: ?"
+						escape="false" styleClass="mui-link-font"/>
+					<hr />
+					<h:panelGroup id="output">
+						<h:outputText rendered="#{freqdict.searchResultMessage.length()>0}" value="#{freqdict.searchResultMessage}" styleClass="mui-message-font"/>
+						<br />
+					    <p:panel header="Про частотний словник української публіцистики" rendered="#{freqdict.foundWords.size()==0}">
+							<p>Для створення словника було використано публікації з наступних сайтів та видань:
+							</p>
+							<ul>
+								<li>http://www.umoloda.kiev.ua/
+								</li>
+								<li>https://day.kyiv.ua/
+								</li>
+								<li>http://tyzhden.ua/
+								</li>
+								<li>http://gazeta.dt.ua/
+								</li>
+								<li>http://www.unian.ua/
+								</li>
+								<li>http://zaxid.net/
+								</li>
+								<li>http://zik.ua/
+								</li>
+								<li>http://www.pravda.com.ua/
+								</li>
+								<li>http://gazeta.ua/
+								</li>
+								<li>http://www.telekritika.ua/
+								</li>
+								<li>http://molbuk.ua/
+								</li>
+								<li>Голос України
+								</li>
+							</ul>
+							<p>Для отримання динаміки частоти вживання слів, обчислювалася частота вживання слова за кожен рік починаючи з 1991 року.
+							Загалом було проаналізовано 870 мільйонів слів, або 12,5 гігабайтів тексту.
+							</p>
+							<p>Кількість проаналізованих слів за кожен рік виглядає так:
+							</p>
+							<table border="1" cellpadding="5" style="border-collapse: collapse;">
+							  <tr><th>Рік</th><th>Кількість слів</th></tr>
+								<tr><td>1991</td><td>5 110 805</td></tr>
+								<tr><td>1992</td><td>4 729 946</td></tr>
+								<tr><td>1993</td><td>3 431 045</td></tr>
+								<tr><td>1994</td><td>3 849 379</td></tr>
+								<tr><td>1995</td><td>3 417 543</td></tr>
+								<tr><td>1996</td><td>4 043 219</td></tr>
+								<tr><td>1997</td><td>5 395 192</td></tr>
+								<tr><td>1998</td><td>7 197 782</td></tr>
+								<tr><td>1999</td><td>8 038 333</td></tr>
+								<tr><td>2000</td><td>8 875 595</td></tr>
+								<tr><td>2001</td><td>9 582 517</td></tr>
+								<tr><td>2002</td><td>11 410 371</td></tr>
+								<tr><td>2003</td><td>12 248 543</td></tr>
+								<tr><td>2004</td><td>17 535 415</td></tr>
+								<tr><td>2005</td><td>21 014 925</td></tr>
+								<tr><td>2006</td><td>33 400 295</td></tr>
+								<tr><td>2007</td><td>47 289 146</td></tr>
+								<tr><td>2008</td><td>59 827 287</td></tr>
+								<tr><td>2009</td><td>61 385 679</td></tr>
+								<tr><td>2010</td><td>72 069 207</td></tr>
+								<tr><td>2011</td><td>74 232 823</td></tr>
+								<tr><td>2012</td><td>80 327 866</td></tr>
+								<tr><td>2013</td><td>69 711 366</td></tr>
+								<tr><td>2014</td><td>82 548 090</td></tr>
+								<tr><td>2015</td><td>85 934 326</td></tr>
+								<tr><td>2016</td><td>80 967 088</td></tr>
+							</table>
+							<p>Ось слова, динаміка вживання яких відображає певні події, тенденції. І це лише початок.
+							Думаю, що подальший аналіз цих даних принесе багато цікавого.
+							</p>
+							<ul>
+								<li><a href="freq/майдан">майдан</a>,
+								    <a href="freq/помаранчевий">помаранчевий</a>,
+								    <a href="freq/революція">революція</a>,  
+								    <a href="freq/революція">протест</a>  
+								</li>
+								<li><a href="freq/Кравчук">Кравчук</a>, 
+								    <a href="freq/Кучма">Кучма</a>, 
+								    <a href="freq/Ющенко">Ющенко</a>, 
+								    <a href="freq/Янукович">Янукович</a>, 
+								    <a href="freq/Порошенко">Порошенко</a>, 
+								    <a href="freq/Литвин">Литвин</a> 
+								</li>
+								<li><a href="freq/Обама">Обама</a>, 
+								    <a href="freq/Меркель">Меркель</a>, 
+								    <a href="freq/Трамп">Трамп</a>, 
+								    <a href="freq/Саркозі">Саркозі</a>, 
+								    <a href="freq/Єльцин">Єльцин</a>
+								</li>
+								<li><a href="freq/УПА">УПА</a>,
+									<a href="freq/Бандера">Бандера</a>, 
+									<a href="freq/Коновалець">Коновалець</a>
+								</li>
+								<li><a href="freq/ЄС">ЄС</a>, 
+									<a href="freq/Євросоюз"> Євросоюз</a>,
+									<a href="freq/безвізовий">безвізовий</a>,
+									<a href="freq/євробачення">євробачення</a>,
+									<a href="freq/олімпіада"> олімпіада</a>
+								</li>
+								<li><a href="freq/терорист">терорист</a>, 
+									<a href="freq/сепаратизм">сепаратизм</a>,
+									<a href="freq/війна">війна</a>,
+									<a href="freq/окупація">окупація</a>,
+									<a href="freq/заручник">заручник</a>
+								</li>
+								<li><a href="freq/корупція">корупція</a>,  
+									<a href="freq/інфляція">інфляція</a>,
+									<a href="freq/ваучер">ваучер</a>
+								</li>
+								<li><a href="freq/інтернет">інтернет</a>,  
+									<a href="freq/гаджет">гаджет</a>,
+									<a href="freq/Facebook">Facebook</a>, 
+									<a href="freq/смартфон">смартфон</a>, 
+									<a href="freq/флешка">флешка</a>, 
+									<a href="freq/відеомагнітофон">відеомагнітофон</a>, 
+									<a href="freq/магнітофон">магнітофон</a>, 
+									<a href="freq/касета">касета</a>,
+									<a href="freq/дрон">дрон</a>
+								</li>
+							</ul>
+							<p>Було б цікаво розширити хронологію, але я не знайшов електронних текстів періодичних видань до 1991 року.
+							Якщо раптом хтось має такі тексти й бажає надати їх для аналізу — пишіть на webmaster на linguisto.eu.
+							</p>
+						</p:panel>
+					    <!-- p:panel rendered="#{freqdict.foundWords.size()&lt;1}" header="Перегляд словника" >
+							<ui:insert name="dict_browser" >
+							   <ui:include src="/template/dictBrowser.xhtml"/>
+							</ui:insert>
+					    </p:panel>
+					    <p:panel rendered="#{freqdict.foundWords.size()&lt;1}" header="Випадкові слова" >
+							<ui:insert name="random_words" >
+							   <ui:include src="/template/randomWords.xhtml">
+									<ui:param name="param_lang" value="#{freqdict.langFrom}" />
+							   </ui:include>
+							</ui:insert>
+					    </p:panel-->
+					    <!-- list of dictionary articles or words -->
+						<p:dataList id="wordList" rendered="#{freqdict.foundWords.size()>0}" value="#{freqdict.foundWords}" var="word" type="definition"
+								styleClass="mui-datalist">
+							<h:panelGroup>
+								<!-- word -->
+								<b><h:link rendered="#{freqdict.foundWords.size()>1}" outcome="freqDictView" value="#{word.word}" >
+									<f:param name="w" value="#{word.word}"/>
+								</h:link></b>
+								<h:outputText value="&#160;" />
+	
+								<!-- stats chart -->
+								<p:chart rendered="#{freqdict.foundWords.size() lt 6}" type="line" model="#{freqdict.getLineModel(word.word)}" 
+									style="height:300px;" responsive="true"/>
+							</h:panelGroup>
+						</p:dataList>
+					</h:panelGroup>
+		        </p:tab>
+
+		        <p:tab title="Допомога">
+					<h:panelGrid id="help">
+						<h2>TODO</h2>
+				    </h:panelGrid>
+		        </p:tab>
+		    </p:tabView>
+   		</h:form>
+	</ui:define>
+</ui:composition>

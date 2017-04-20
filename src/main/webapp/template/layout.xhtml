@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="#{login.locale}"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pm="http://primefaces.org/mobile">
+
+<f:view contentType="text/html" encoding="UTF-8" locale="#{login.locale}">
+    <ui:insert name="metadata"/>
+     
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<title><ui:insert name="title">Лінгвісто</ui:insert></title>
+	<link rel="shortcut icon" type="image/x-icon" href="#{request.contextPath}/img/favicon.ico"/>
+	<h:outputStylesheet name="#{request.contextPath}/css/style2.css"/>
+	<meta name="robots" content="index, follow"/>
+	<meta name="keywords" content="німецько-український словник, aнглійсько-український словник, німецький словник, aнглійський словник,
+	 відкритий словник, колаборативний словник, співпраця, навчання, редагування словника, мова, переклад, вивчення німецької мови, вивчення aнглійської мови, завантажити словник,
+	 German-Ukrainian dictionary, English-Ukrainian dictionary, German dictionary, English dictionary,
+	 open dictionary, free multilingual collaborative dictionary for Ukrainian, cooperation, learning, dictionary editing, translation, learn German, learn English, download dictionary"/>
+	<ui:insert name="metatags"/>
+</h:head>
+
+<h:body>
+<pm:page title="Лінгвісто">
+	<pm:header>
+			<!-- site header -->
+			<p:panelGrid id="panel" columns="2" style="width: 100%" styleClass="mui-panelgrid">
+				<h:panelGrid columns="2" cellpadding="5" cellspacing="1" style="float: left;">
+					<h:form id="loginform_outer">
+					<p:growl id="growl" showDetail="true" sticky="true" escape="false" />
+					<h:inputHidden value="#{login.onLoad}" />
+					</h:form>
+					<!-- p:commandButton id="btn-menu" value="..." type="button"/-->
+					<!-- site logo -->
+					<h:outputLink value="#{request.contextPath}/" title="Лінгвісто" style="margin-bottom:5px;">
+					    <!-- <h:graphicImage alt="vDict" value="./img/vDict.png"/>  -->
+						<h2 style="width: 100%; text-align: center;">Лінгвісто</h2>
+					</h:outputLink>
+				</h:panelGrid>
+				<h:panelGrid columns="4" cellpadding="5" cellspacing="1" style="float: right;">
+					<h:outputLink rendered="#{!login.loggedIn}" value="#{request.contextPath}/signin.xhtml" >#{msg['lable.create.account']}</h:outputLink>
+					<h:link rendered="#{login.loggedIn}" value="Користувач: #{login.user.name}" outcome="accountInfo"/>
+					<h:outputText value="|" />
+					<h:outputLink rendered="#{!login.loggedIn}" value="#{request.contextPath}/login.xhtml" >#{msg['lable.login']}</h:outputLink>
+					<h:form>
+					<h:commandLink rendered="#{login.loggedIn}" value="#{msg['lable.logout']}" action="#{login.logout}" />
+					</h:form>
+				</h:panelGrid>
+			</p:panelGrid>
+	</pm:header>
+
+	<pm:content>
+	<table style="width: 100%">
+		<tr>
+		<td style="min-width:280px; width:15%; vertical-align: top;">
+		<h:form id="menu_form">
+		    <p:fieldset legend="Словники" style="margin-bottom:10px">
+			    <ul>
+			    	<ui:fragment rendered="#{login.loggedIn and login.user.hasRole('ADMIN')}">
+			    	<li>
+				    	<h:outputLink value="/dictView.xhtml">
+				    		<h:outputText value="Словник" />
+				    	</h:outputLink>
+			        </li>
+			    	</ui:fragment>
+			    	<li>
+				    	<h:outputLink value="/sdictview.xhtml?langf=en">
+				    		<h:graphicImage height="15px" width="25px" alt="Англійсько-український словник" value="#{request.contextPath}/img/en.png"/>
+				    		<h:graphicImage height="15px" width="25px" alt="Англійсько-український словник" value="#{request.contextPath}/img/uk.png"/>
+				    		<br/>
+				    		<h:outputText value="Англійсько-український словник" />
+				    	</h:outputLink>
+			        </li>
+			    	<li>
+				    	<h:outputLink value="/sdictview.xhtml?langf=de">
+				    		<h:graphicImage height="15px" width="25px" alt="Німецько-український словник" value="#{request.contextPath}/img/de.png"/>
+				    		<h:graphicImage height="15px" width="25px" alt="Німецько-український словник" value="#{request.contextPath}/img/uk.png"/>
+				    		<br/>
+				    		<h:outputText value="Німецько-український словник" />
+			    		</h:outputLink>
+			        </li>
+			    	<li>
+			    		<h:outputLink value="/sdictview.xhtml?langf=fr">
+				    		<h:graphicImage height="15px" width="25px" alt="Французько-український словник" value="#{request.contextPath}/img/fr.png"/>
+				    		<h:graphicImage height="15px" width="25px" alt="Французько-український словник" value="#{request.contextPath}/img/uk.png"/>
+				    		<br/>
+				    		<h:outputText value="Французько-український словник" />
+			    		</h:outputLink>
+			        </li>
+			    	<li>
+			    		<h:outputLink value="/freqDictView.xhtml">
+				    		<h:graphicImage height="15px" width="25px" alt="Україна" value="#{request.contextPath}/img/uk.png"/>
+				    		<br/>
+				    		<h:outputText value="Частотний словник української мови" />
+			    		</h:outputLink>
+			        </li>
+			    </ul>
+		    </p:fieldset>
+		    <p:fieldset legend="Інструменти" style="margin-bottom:10px">
+			    <ul>
+			    	<li><h:outputLink value="/learn.xhtml">Навчальні тексти</h:outputLink>
+			        </li>
+			    	<li><h:outputLink value="/voctest.xhtml">Тест словникового запасу</h:outputLink>
+			        </li>
+			    	<ui:fragment rendered="#{login.loggedIn}">
+			    	<li><h:outputLink value="/userDict.xhtml">Вивчені слова</h:outputLink>
+			        </li>
+			    	</ui:fragment>
+			    	<li><h:outputLink value="/dictHistory.xhtml">Нові редагування</h:outputLink>
+			        </li>
+			    </ul>
+		    </p:fieldset>
+		    <p:fieldset rendered="#{login.loggedIn and login.user.hasRole('ADMIN')}"
+		    	legend="Адміністрування" style="margin-bottom:10px">
+			    <ul>
+			    	<li><h:outputLink value="/infEditor.xhtml">InfEditor</h:outputLink>
+			        </li>
+			    </ul>
+		    </p:fieldset>
+		    <p:fieldset legend="Проект" style="margin-bottom:10px">
+			    <ul>
+			    	<li><h:outputLink value="/about.xhtml">Про проект</h:outputLink>
+			        </li>
+			    	<li><h:outputLink value="/publicationList.xhtml">Публікації</h:outputLink>
+			        </li>
+			    </ul>
+		    </p:fieldset>
+		</h:form >
+
+		</td>
+		<td style="vertical-align: top;">
+			<ui:insert name="content">Put default content here, if any.</ui:insert>
+		</td>
+		</tr>
+	</table>
+	</pm:content>
+
+	<!-- footer -->
+	<pm:footer>
+		<h:form id="footer_form">
+    	<p:panelGrid id="footer_panel" columns="2" cellpadding="5" cellspacing="1" style="width: 100%" styleClass="mui-panelgrid">
+	    	<h:outputText value="Volodymyr Vlad, Copyright © 2014 – 2017, All rights reserved"
+	    		escape="false" styleClass="mui-link-font"/>
+			<h:outputText value="Кількість відвідувачів: #{messages.getMessage('sessions')}
+				&lt;br/&gt; Кількість зареєстрованих користувачів: #{dailyword.getAppStats('users')}"
+				escape="false" styleClass="mui-link-font"/>
+    	</p:panelGrid>
+		</h:form>
+	</pm:footer>
+</pm:page>
+<ui:debug />
+</h:body>
+</f:view>
+</html>

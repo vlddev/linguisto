@@ -1,0 +1,83 @@
+<ui:composition template="/template/layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+ 
+  	<ui:define name="title">Лінгвісто: Навчальні тексти</ui:define>
+ 
+ 	<ui:define name="content">
+   		<h:form id="main_form">
+		    <p:tabView>
+		        <p:tab title="Навчальні тексти">
+					<h:panelGrid id="learn_input" style="width: 100%">
+						<h:outputLabel for="text" rendered="#{login.loggedIn}" value="Текст" />
+						<h:outputLabel for="text" rendered="#{!login.loggedIn}" value="Текст (не більше 1000 символів)" />
+						<p:inputTextarea label="#{msg['lable.learn_text']}" id="text"
+							value="#{learn.text}" required="true"
+							maxlength="#{login.maxLearnTextLength}" rows="10" autoResize="false" style="width: 100%"/>
+						<h:panelGroup >
+							<h:outputLabel for="usedDict" value="Словник: " />
+							<h:selectOneMenu id="usedDict" value="#{learn.dictName}">
+								<f:selectItem itemLabel="Англійсько-український" itemValue="en_uk" />
+								<f:selectItem itemLabel="Німецько-український" itemValue="de_uk" />
+							</h:selectOneMenu>
+						</h:panelGroup>
+						<h:panelGroup>
+							<p:commandButton id="prepare_button" value="#{msg['lable.do_prepare']}"
+								action="#{learn.prepareText()}" update="output"/>
+						</h:panelGroup>
+					</h:panelGrid>
+					<p:blockUI block="learn_input" trigger="prepare_button">
+        				Обробляється<br />
+        				<p:graphicImage name="images/busy.gif"/>
+    				</p:blockUI>
+					<br />
+					<h:panelGrid id="output" class="learn_text">
+						<h:panelGroup >
+							<h:commandButton id="savefb2_button" rendered="#{learn.resultText != null}" value="Зберегти текст як fb2"
+								action="#{learn.saveResultTextAsFb2()}"/>
+							<h:commandButton id="save_html_button" rendered="#{learn.resultText != null}" value="Зберегти текст як HTML"
+								action="#{learn.saveResultTextAsHtml()}"/>
+							<h:commandButton id="saveuw_button" rendered="#{learn.resultText != null}" value="Зберегти невідомі слова"
+								action="#{learn.saveResultTextUnknownWords()}"/>
+						</h:panelGroup>
+						<h:panelGroup >
+							<h:outputText rendered="#{learn.resultText == null}"
+							value="Введіть текст в поле 'Текст' вище і натисніть 'Обробити' і тут відобразиться результат обробки." />
+							<h:outputText rendered="#{learn.resultText != null and !learn.isShowResultText()}"
+							value="Текст надто великий для відображення. Можете зберегти його як fb2." />
+							<ui:repeat rendered="#{learn.isShowResultText()}" value="#{learn.resultText.getAsChunks(false)}" var="chunk">
+								<h:outputText id="txt" value="#{chunk.value}" class="#{chunk.clazz}" escape="#{chunk.id gt 0}"/>
+								<p:tooltip rendered="#{chunk.hintHtml != null and chunk.hintHtml.length() > 0}" for="txt">
+									<h:outputText value="#{chunk.hintHtml}" escape="false"/>
+								</p:tooltip>
+							</ui:repeat>
+						</h:panelGroup>
+					</h:panelGrid>
+		        </p:tab>
+		        <p:tab title="Допомога">
+					<h:panelGrid id="help">
+						<p>Щоб скористатися інструментом 'Навчальні тексти' виконайте наступні дії:
+						<ol>
+							<li> Введіть або скопіюйте німецький або англійський текст в поле 'Текст'. Довжина тексту обмежена 1000 символів.
+							</li>
+							<li> Виберіть словник який ви хочете застосувати при обробці тексту (Німецько-український або Англійсько-український).
+							</li>
+							<li> Натисніть кнопку 'Обробити' і через деякий час в нижній частині вікна з'явиться, як показано на зображенні нижче, оброблений текст.
+							</li>
+						</ol>
+		                Слова знайдені в словнику і незнайомі (не внесені в список вивчених слів в інструменті 'Вивчені слова') даному користувачу виділені підкресленням.
+		                Якщо підвести курсор миші до такого слова, то з'явиться підказка з перекладом слова.
+		                Для незареєстрованих користувачів вважається, що всі слова незнайомі.
+		                В німецьких текстах іменники знайдені в словнику виділяються кольором в залежності від роду: чоловічого — синім, жіночого — червоним, середнього — зеленим.
+		                <br /><b>Бажаємо Вам корисного і приємного використання!</b>
+					    <h:graphicImage width="100%" alt="LearnTexts_ex1" value="./img/LearnTexts_ex1.png"/>
+						</p>
+				    </h:panelGrid>
+		        </p:tab>
+		    </p:tabView>
+   		</h:form>
+	</ui:define>
+</ui:composition>

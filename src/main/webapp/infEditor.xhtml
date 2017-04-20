@@ -1,0 +1,76 @@
+<ui:composition template="/template/layout.xhtml" 
+    xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+	
+		<ui:define name="content">
+			<div class="content_head">Inf Editor #{infEditor.langFrom}</div>
+			<div class="content_body">
+				<ui:fragment rendered="#{login.loggedIn and login.user.hasRole('ADMIN')}">
+				<ui:fragment rendered="#{infEditor.messages.size()>0}">
+					<hr />
+					<h:outputText value="Збережені слова" />
+					<h:dataTable id="msgTable"
+								value="#{infEditor.messages}" var="row">
+								<h:column>
+									<h:outputText value="#{row}" />
+								</h:column>
+					</h:dataTable>
+					<hr />
+				</ui:fragment>
+				<h:form id="editform">
+					<h:outputLabel for="inf_type" value="Type: " />
+					<h:selectOneMenu id="inf_type" value="#{infEditor.filterTypeId}" >
+						<f:selectItem itemValue="#{null}" itemLabel="---" />
+						<f:selectItems value="#{dbBean.getWordTypeConverterByStr(infEditor.langFrom).types}" var="type" itemValue="#{type.id}" itemLabel="#{type.toString()}" />
+					</h:selectOneMenu>
+					<h:outputLabel for="inf_inf" value="Inf like: " />
+					<h:inputText id="inf_inf" value="#{infEditor.filterInf}"/>
+					<p:commandButton value="Search" ajax="false"
+						action="#{infEditor.search(infEditor.filterTypeId, infEditor.filterInf)}" class="submit min">
+					</p:commandButton>
+					<br />
+					<br />
+					<h:panelGrid >
+						<h:panelGroup id="result">
+							<h:dataTable id="table01"
+								value="#{infEditor.foundWords}" var="row"
+								headerClass="word-table-header"
+								rowClasses="word-table-odd-row,word-table-even-row">
+								<h:column>
+									<f:facet name="header">Inf</f:facet>
+									<h:inputText value="#{row.inf}" />
+								</h:column>
+								<h:column>
+									<f:facet name="header">Type</f:facet>
+									<h:selectOneMenu id="word_type" value="#{row.type}">
+										<f:selectItems value="#{dbBean.getWordTypeConverterByStr(infEditor.langFrom).types}" var="type" itemValue="#{type.id}" itemLabel="#{type.toString()}" />
+									</h:selectOneMenu>
+								</h:column>
+								<h:column>
+									<f:facet name="header">Transcription</f:facet>
+									<h:inputText value="#{row.transcription}" />
+								</h:column>
+								<h:column>
+									<f:facet name="header">Wiktionary</f:facet>
+									<h:outputLink value="#{'http://de.wiktionary.org/wiki/'.concat(infEditor.infToUrl(row.inf))}">
+									<h:outputText value="#{row.inf}" />
+									</h:outputLink>
+								</h:column>
+							</h:dataTable>
+						</h:panelGroup>
+
+						<h:commandButton id="save" value="Save"
+							action="#{infEditor.save(infEditor.foundWords)}" class="submit min" />
+					</h:panelGrid>
+				</h:form>
+			</ui:fragment>
+			<ui:fragment rendered="#{! (login.loggedIn and login.user.hasRole('ADMIN'))}">
+				<h:outputText value="You have no permissions to use this tool." />
+			</ui:fragment>
+			</div>
+			<!-- end of content_body -->
+		</ui:define>
+</ui:composition>

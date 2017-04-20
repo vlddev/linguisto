@@ -1,0 +1,32 @@
+<ui:composition template="/template/layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+
+ 	<ui:define name="title">Лінгвісто: Обліковий запис</ui:define>
+
+ 	<ui:define name="content">
+ 		<p:panel header="Обліковий запис" style="margin-bottom:20px">
+			<ui:fragment rendered="#{login.loggedIn}">
+				<h:form id="resetForm" prependId="false">
+					<p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
+					 <h:panelGrid id="grid" columns="2" cellpadding="5">
+						<h:outputText value="Ім'я користувача:" />
+						<h:outputText value="#{login.user.name}" />
+
+						<h:outputText value="Адреса електронної пошти:" />
+						<h:outputText value="#{login.user.email}" />
+						
+						<h:link value="Змінити електронну пошту" outcome="changeEmail"/>
+					</h:panelGrid>
+					<h:link value="Змінити пароль" outcome="changepwd"/>
+				</h:form>
+			</ui:fragment>
+			<ui:fragment rendered="#{!login.loggedIn}">
+				<h:outputText value="Ввійдіть щоб користуватися цим інструментом" />
+			</ui:fragment>
+		</p:panel>
+	</ui:define>
+</ui:composition>

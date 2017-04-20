@@ -1,0 +1,143 @@
+<ui:composition template="/template/layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pm="http://primefaces.org/mobile">
+ 
+ 	<ui:define name="metatags">
+ 		<meta name="description" 
+ 			content="Англійсько-український словник, Німецько-український словник,
+ 			інструментів для вивчення слів та підготовки навчальних текстів.
+ 			English-Ukrainian dictionary, German-Ukrainian dictionary, tools for learning words and preparing educational texts"/>
+ 		<meta name="google-site-verification" content="IhXoEniWSjjKbAMZNCyusobMnMugywB6BqiFijITS54" />
+ 	</ui:define> 		
+ 
+  	<ui:define name="title">Лінгвісто — онлайн словники, які можна редагувати, та набір лінгвістичних інструментів.</ui:define>
+ 
+ 	<ui:define name="content">
+   		<h:form id="main_form" >
+	    <p:panel header="Лінгвісто — онлайн словники, які можна редагувати, та набір лінгвістичних інструментів."
+	    	collapsed="true" style="text-align: center;">
+	    </p:panel>
+        <p:panelGrid  width="100%" columns="2" layout="grid"
+        	columnClasses="mui-column-style-50, mui-column-style-50"
+        	styleClass="ui-panelgrid-blank">
+		    <p:panel id="panel11" header="Англійське слово дня">
+				<ui:insert name="en_daily_words" >
+				   <ui:include src="/template/dictArticles.xhtml">
+						<ui:param name="param_lang" value="en" />
+				   </ui:include>
+				</ui:insert>
+		    </p:panel>
+		    <p:panel id="panel12" header="Німецьке слово дня">
+				<ui:insert name="de_daily_words" >
+				   <ui:include src="/template/dictArticles.xhtml">
+						<ui:param name="param_lang" value="de" />
+				   </ui:include>
+				</ui:insert>
+		    </p:panel>
+		    <p:panel id="panel21" header="Випадкові слова англійською" >
+				<ui:insert name="en_random_words" >
+				   <ui:include src="/template/randomWords.xhtml">
+						<ui:param name="param_lang" value="en" />
+				   </ui:include>
+				</ui:insert>
+		    </p:panel>
+		    <p:panel id="panel22" header="Випадкові слова німецькою" >
+				<ui:insert name="de_random_words" >
+				   <ui:include src="/template/randomWords.xhtml">
+						<ui:param name="param_lang" value="de" />
+				   </ui:include>
+				</ui:insert>
+		    </p:panel>
+		    <p:panel id="panel31" header="Випадкове слово частотного словника" >
+				<!-- stats chart -->
+				<p:chart type="line" model="#{freqdict.getRandomLineModel('1')}" 
+					style="height:200px;" responsive="true"/>
+		    </p:panel>
+		    <p:panel id="panel32" header="Випадкове слово частотного словника" >
+	<!-- stats chart -->
+				<p:chart type="line" model="#{freqdict.getRandomLineModel('2')}" 
+					style="height:200px;" responsive="true"/>
+		    </p:panel>
+		    <p:panel id="panel41" header="Останні дії" >
+				<ui:insert name="last_actions" >
+					<p:dataTable value="#{history.getActionHistory(10)}" var="act" style="font-size:14px;" tableStyle="table-layout: auto;">
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="Дата" />
+							</f:facet>
+							<h:outputText value="#{act.aTime}" >
+								<f:convertDateTime type="both" pattern="dd.MM.yyyy HH:mm:ss" timeZone="GMT"/>
+							</h:outputText>
+						</p:column>
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="Дія" />
+							</f:facet>
+							<h:outputText value="#{act.getAsString()}" escape="false"/>
+						</p:column>
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="Словник" />
+							</f:facet>
+							<h:outputText value="#{act.defLang}" />
+						</p:column>
+					</p:dataTable>
+				</ui:insert>
+		    </p:panel>
+		    <p:panel id="panel42" header="Останні редагування" >
+				<ui:insert name="last_edits" >
+					<p:dataTable value="#{history.getDictHistory(10)}" var="hist" style="font-size:14px;" tableStyle="table-layout: auto;">
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="Дата" />
+							</f:facet>
+							<h:outputText value="#{hist.chDate}" >
+								<f:convertDateTime type="both" pattern="dd.MM.yyyy HH:mm:ss" timeZone="GMT"/>
+							</h:outputText>
+						</p:column>
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="Користувач" />
+							</f:facet>
+							<h:outputText value="#{hist.userName}" />
+						</p:column>
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="Словник" />
+							</f:facet>
+							<h:outputText value="#{hist.langFrom} → uk" />
+						</p:column>
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="Слово" />
+							</f:facet>
+							<h:link outcome="sdictview" value="#{hist.inf}" >
+								<f:param name="langf" value="#{hist.langFrom}"/>
+								<f:param name="id" value="#{hist.infId}"/>
+							</h:link>
+						</p:column>
+					</p:dataTable>
+				</ui:insert>
+		    </p:panel>
+		    <p:panel id="panel51" header="Статистика англійсько-українського словника" >
+				<ui:insert name="en_dict_stats" >
+				   <ui:include src="/template/dictStats.xhtml">
+						<ui:param name="param_lang" value="en" />
+				   </ui:include>
+				</ui:insert>
+		    </p:panel>
+		    <p:panel id="panel52" header="Статистика німецько-українського словника" >
+				<ui:insert name="de_dict_stats" >
+				   <ui:include src="/template/dictStats.xhtml">
+						<ui:param name="param_lang" value="de" />
+				   </ui:include>
+				</ui:insert>
+		    </p:panel>
+        </p:panelGrid>
+        </h:form>
+    </ui:define>
+</ui:composition>

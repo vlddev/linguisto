@@ -1,0 +1,180 @@
+/*--------------------------- override primefaces borders --------------------------*/
+.ui-layout, .ui-layout-doc, .ui-layout-unit, .ui-layout-wrap, .ui-layout-bd, .ui-layout-hd{
+     border: none !important;
+}
+
+/*--------------------------- override primefaces dataList borders --------------------------*/
+/*.ui-widget-content {
+     border: none;
+}*/
+
+.mui-datagrid .ui-datagrid-content {
+   border: none;
+}   
+
+.mui-datalist .ui-datalist-content {
+   border: none;
+}   
+
+.mui-panelgrid.ui-panelgrid>*>tr,
+.mui-panelgrid.ui-panelgrid .ui-panelgrid-cell {
+    border: none !important;
+}
+
+/*
+.mui-panelgrid.ui-panelgrid td, tr {
+    border-style: none !important;
+}*/
+
+.mui-panelgrid td {
+    vertical-align: top;
+}
+
+.mui-column-style-50 {
+    width: 50%; 
+}
+
+.mui-grid-left-column {
+    width: 50%;
+    text-align: left; 
+}
+
+.mui-grid-right-column {
+    width: 50%;
+    text-align: right; 
+}
+
+/* link color */
+.mui-outputlink:link {
+	color:blue ;
+}
+a.mui-link:link {
+	color:blue ;
+}
+/* visited link color */
+.mui-outputlink:visited {
+	color:purple ;
+}
+a.mui-link:visited {
+	color:purple ;
+}
+
+.mui-link-font {
+	font-size: small;
+}
+
+/*--------------------------- font of messages --------------------------*/
+.mui-message-font {
+	font-style: italic;
+	color: red; 
+}
+
+.mui-no-tr-message-font {
+	font-style: italic;
+	color: #20B2AA; 
+}
+
+/*--------------------------- format new line --------------------------*/
+.mui-wrap {
+    white-space: pre-wrap;
+}
+
+/*--------------------------- word table elements --------------------------*/
+.word-table{   
+	border-collapse:collapse;
+	border:1px solid #000000;
+	width: auto;
+}
+
+.word-table td {   
+	border-collapse:collapse;
+	padding:2px;
+	border:1px solid #000000;
+}
+
+.word-table-header{
+	text-align:center;
+	background:none repeat scroll 0 0 #c6e1ff;
+	border:1px solid #000000;
+	padding:16px;
+}
+ 
+.word-table-odd-row{
+	text-align:center;
+	background:none repeat scroll 0 0 #ffffff;
+}
+ 
+.word-table-even-row{
+	text-align:center;
+	background:none repeat scroll 0 0 #d5eaff;
+}
+
+/*--------------- learn texts styles ----------------*/
+.dict {
+	font-weight: bold;
+	border-bottom: 1px black dotted;
+}
+
+.dict2 { /*masculine*/
+	font-weight: bold;
+	color: #3A5ECA; 
+	border-bottom: 1px black dotted;
+}
+
+.dict3 { /*feminine*/
+	font-weight: bold;
+	color: #AF5A76; 
+	border-bottom: 1px black dotted;
+}
+
+.dict4 { /*neuter*/
+	font-weight: bold;
+	color: #297D4E; 
+	border-bottom: 1px black dotted;
+}
+
+.known2 { /*masculine*/
+	color: #3A5ECA; 
+}
+
+.known3 { /*feminine*/
+	color: #AF5A76; 
+}
+
+.known4 { /*neuter*/
+	color: #297D4E; 
+}
+
+.unrec {
+	font-style:italic;
+}
+
+/*--------------------------- pair table elements --------------------------*/
+.pair-table{   
+	border-collapse:collapse;
+	border:1px solid #000000;
+}
+
+.pair-table td {   
+	border-collapse:collapse;
+	border:1px solid #000000;
+	padding:2px;
+	text-align:left;
+}
+
+.pair-table-header{
+	text-align:center;
+	background:none repeat scroll 0 0 #a0ccff;
+	border:1px solid #000000;
+	padding:16px;
+}
+ 
+.pair-table-odd-row{
+	text-align:left;
+	background:none repeat scroll 0 0 #ffffff;
+}
+ 
+.pair-table-even-row{
+	text-align:left;
+	background:none repeat scroll 0 0 #d5eaff;
+}

@@ -1,0 +1,215 @@
+<ui:composition template="/template/layout.xhtml" 
+    xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+
+ 	<ui:define name="title">Лінгвісто: Редактор #{editdict.getDictNameGen()} словника</ui:define>
+
+ 	<ui:define name="content">
+   		<h:form id="main_form" >
+   			<p:growl id="edit_growl" showDetail="false" life="2000"/> 
+		    <p:tabView id="dictTabView" widgetVar="dictTabView" dynamic="true">
+		        <p:tab id="dictTab" title="Редактор #{editdict.getDictNameGen()} словника">
+				<ui:fragment rendered="#{login.loggedIn}">
+					<h:panelGrid width="100%">
+						<h:panelGroup id="editor">
+							<h:panelGrid columns="2">
+								<h:outputLabel value="ID: " />
+								<h:outputLabel value="#{editdict.wordId}" />
+							</h:panelGrid>
+							<h:panelGrid columns="2">
+								<h:outputLabel value="Слово: " />
+								<h:outputLabel value="#{editdict.editWord.word}" rendered="#{not empty editdict.wordId}"/>
+								<h:inputText value="#{editdict.editWord.word}" size="40" rendered="#{empty editdict.wordId}"/>
+								<h:outputLabel value="Тип (частина мови): " />
+								<p:selectOneMenu id="word_type" value="#{editdict.editWord.wordType}">
+									<f:selectItems value="#{dbBean.getWordTypeConverterByStr(editdict.editWord.lang).types}" var="type" itemValue="#{type.id}" itemLabel="#{type.toString()}" />
+								</p:selectOneMenu>
+							</h:panelGrid>
+							<p:dataTable id="editortbl" value="#{editdict.editWord.translations}" var="tr" emptyMessage="перекладів не знайдено">
+								<p:column width="20">
+									<b><h:outputText rendered="#{not empty tr}" value="#{tr.trOrder}" /></b>
+								</p:column>
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="Переклад" />
+									</f:facet>
+									<p:inputTextarea id="tr_tr" rendered="#{not empty tr}"
+										value="#{tr.translation}"
+										style="width: 96%;"
+										rows="2"/>
+								</p:column>
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="Приклади" />
+									</f:facet>
+									<p:inputTextarea id="tr_ex" rendered="#{not empty tr}"
+										value="#{tr.example}"
+										style="width: 96%;"
+										rows="2" />
+								</p:column>
+								<p:column width="100">
+									<p:commandButton id="down_transl" title="Down" icon="ui-icon-circle-arrow-s"
+										style="width:30px;height:30px"
+										rendered="#{not empty tr and tr.trOrder lt editdict.editWord.translations.size()}"
+										action="#{editdict.editWord.moveDownTranslation(tr)}" update="editortbl"/>
+									<p:commandButton id="up_transl" title="Up" icon="ui-icon-circle-arrow-n"
+										style="width:30px;height:30px"
+										rendered="#{not empty tr and tr.trOrder gt 1}"
+										action="#{editdict.editWord.moveUpTranslation(tr)}" update="editortbl"/>
+									<p:commandButton id="del_transl" title="Вилучити" icon="ui-icon-circle-minus"
+										style="width:30px;height:30px"
+										rendered="#{not empty tr}"
+										action="#{editdict.editWord.delTranslation(tr)}" update="editortbl"/>
+								</p:column>
+								<f:facet name="footer">
+								</f:facet>
+							</p:dataTable>
+
+							<p:commandButton id="save_word" title="Зберегти зміни" icon="ui-icon-disk"
+								action="#{editdict.save()}" update="@form"/>
+							<p:commandButton id="add_tr" title="Додати переклад" icon="ui-icon-plus"
+								action="#{editdict.addTranslation()}" update="@form"/>
+							<p:commandButton id="cancel_btn" title="Скасувати зміни" icon="ui-icon-cancel" action="sdictview"/>
+							<p:spacer width="20"/>
+							<p:commandButton id="button_preview" title="Оновити попередній перегляд"
+								icon="ui-icon-refresh"
+								update="output"/>
+						</h:panelGroup>
+					</h:panelGrid>
+					<h:panelGroup id="output">
+						<!-- preview -->
+						<p:panel header="Попередній перегляд" style="background:#66FFFF;">
+							<ui:fragment rendered="#{not empty editdict.editWord}">
+								<b><h:outputText value="#{editdict.editWord.word}" /></b>
+								<!-- TODO  h:outputText rendered="#{not empty word.transcription}" value="&#160;" />
+								<h:outputText value="#{word.transcription}" /-->
+								<i><h:outputText value="#{editdict.editWord.wordType}" converter="#{dbBean.getWordTypeConverterByStr(editdict.editWord.lang)}"/></i>
+								<a href="#{'http://uk.forvo.com/word/'.concat(editdict.editWord.word).concat('/#de')}" class="mui-link" target="_blank"><h:graphicImage alt="приклад вимови" value="./img/speaker.png"/></a>
+								<ul>
+									<ui:repeat value="#{editdict.editWord.translations}" var="tr">
+										<li>
+											<!-- h:outputText value="#{tr.translation}" /-->
+											<ui:repeat value="#{tr.getTranslationChunks()}" var="chunk">
+												<h:outputText rendered="#{not chunk.link}" value="#{chunk.text}" />
+												<h:link rendered="#{chunk.link}" outcome="sdictview" value="#{chunk.text}" >
+													<f:param name="langf" value="#{editdict.editWord.lang}"/>
+													<f:param name="w" value="#{chunk.linkId}"/>
+												</h:link>
+											</ui:repeat>
+											<h:panelGroup rendered="#{not empty tr.example}">
+												<ul class="dict_article">
+													<ui:repeat value="#{tr.examples}" var="example">
+														<li>
+															<h:outputText value="#{example}" />
+														</li>
+													</ui:repeat>
+												</ul>
+											</h:panelGroup>
+										</li>
+									</ui:repeat>
+								</ul>
+								<h:panelGroup rendered="#{'de' == editdict.editWord.lang}">
+									<h:outputText value="Це слово в інших словниках: " styleClass="mui-link-font"/>
+									<h:outputLink value="#{'http://de.wiktionary.org/wiki/'.concat(editdict.editWord.word)}" styleClass="mui-outputlink" target="_blank">
+										<h:outputText value="Wiktionary" styleClass="mui-link-font"/>
+									</h:outputLink> 
+									<h:outputText value=" | " styleClass="mui-link-font"/>
+									<h:outputLink value="#{'http://de.thefreedictionary.com/'.concat(editdict.editWord.word)}" styleClass="mui-outputlink" target="_blank">
+										<h:outputText value="TheFreeDictionary" styleClass="mui-link-font"/>
+									</h:outputLink>
+									<h:outputText value=" | " styleClass="mui-link-font"/>
+									<a href="#{'http://duden.de/suchen/dudenonline/'.concat(editdict.editWord.word)}" class="mui-link" target="_blank"><h:outputText value="Duden" styleClass="mui-link-font"/></a>
+									<h:outputText value=" | " styleClass="mui-link-font"/>
+									<a href="#{'http://dwds.de/?qu='.concat(editdict.editWord.word)}" class="mui-link" target="_blank"><h:outputText value="DWDS" styleClass="mui-link-font"/></a>
+									<h:outputText value=" | " styleClass="mui-link-font"/>
+									<a href="#{'https://translate.google.com/#de/uk/'.concat(editdict.editWord.word)}" class="mui-link" target="_blank"><h:outputText value="Google" styleClass="mui-link-font"/></a>
+									<br/>
+								</h:panelGroup>
+								<h:panelGroup rendered="#{'en' == editdict.editWord.lang}">
+									<h:outputText value="Це слово в інших словниках: " styleClass="mui-link-font"/>
+									<h:outputLink value="#{'http://en.wiktionary.org/wiki/'.concat(word.inf)}" styleClass="mui-outputlink" target="_blank">
+										<h:outputText value="Wiktionary" styleClass="mui-link-font"/>
+									</h:outputLink>
+									<h:outputText value=" | " styleClass="mui-link-font"/>
+									<h:outputLink value="#{'http://thefreedictionary.com/'.concat(word.inf)}" styleClass="mui-outputlink" target="_blank">
+										<h:outputText value="TheFreeDictionary" styleClass="mui-link-font"/>
+									</h:outputLink>
+									<h:outputText value=" | " styleClass="mui-link-font"/>
+									<a href="#{'https://translate.google.com/#en/uk/'.concat(word.inf)}" class="mui-link" target="_blank"><h:outputText value="Google" styleClass="mui-link-font"/></a>
+								</h:panelGroup>
+							</ui:fragment>
+						</p:panel>
+					</h:panelGroup>
+					<h:link rendered="#{not empty editdict.wordId}" outcome="sdictview" value="повернутись в словник" >
+						<f:param name="langf" value="#{editdict.editWord.lang}"/>
+						<f:param name="id" value="#{editdict.wordId}"/>
+					</h:link>
+				</ui:fragment>
+				<ui:fragment rendered="#{!login.loggedIn}">
+					<h:outputText value="Ввійдіть щоб користуватися цим інструментом" />
+				</ui:fragment>
+		        </p:tab>
+
+		        <p:tab title="Допомога">
+		        	<h2>Форматування тексту в полі переклад</h2>
+		        	<h3>Посилання на інші статті в словнику</h3>
+					<ul><li>довгий формат посилання: [[context::word|text]] - відображається як <u>text</u>, посилається на статтю word
+						</li>
+						<li>типовий формат посилання: [[context::word]] - відображається як <u>word</u>, посилається на статтю word 
+						</li>
+						<li>короткий формат посилання: [[word]] - відображається як <u>word</u>, посилається на статтю word 
+						</li>
+					</ul>
+				
+		        	<h3>Коментарі</h3>
+					<p>Текст в дужках "()" може використовуватися для коментування перекладів і відображається сірим кольором. Рекурсивне вживання дужок заборонене.
+					</p>
+		        	<h2>Форматування тексту в полі приклади</h2>
+					<p>Текст в полі приклади має таку структуру: &lt;text&gt;[|&lt;text&gt;]...[&lt;text&gt;]
+					</p>
+					<p>Кожен елемент &lt;text&gt; має таку структуру: &lt;довільний текст або приклад вживання слова&gt;[→&lt;переклад прикладу&gt;]
+					</p>
+				
+		        	<h3>Шаблони</h3>
+					<p>В елементах &lt;text&gt; можуть вживатися шаблони.
+						При форматуванні текст шаблону заміняється на відповідний текст праворуч.
+						В залежності від шаблону форматування елементу &lt;text&gt; відбувається по різному. 
+					</p>
+				
+					<ul><li>{m} - Значення:
+						</li>
+						<li>{syn} - Синоніми: 
+						</li>
+						<li>{sim} - Споріднені слова: 
+						</li>
+						<li>{ant} - Антоніми:
+						</li>
+						<li>{sup} - Надпоняття:
+						</li>
+						<li>{sub} - Підпоняття:
+						</li>
+						<li>{wb} - Словотворення: 
+						</li>
+					</ul>
+					<p>Якщо &lt;text&gt; починається з перерахованих вище шаблонів, то він обробляється як текст в полі переклад. 
+					</p>
+				
+					<ul><li>{ex} - 
+						</li>
+						<li>{idiom} - Ідіоми:
+						</li>
+						<li>{proverb} - Прислів'я:
+						</li>
+						<li>{ce} - Типові фрази:
+						</li>
+					</ul>
+					<p>Якщо &lt;text&gt; починається з перерахованих вище шаблонів, то він обробляється як в полі приклади 
+					</p>
+		        </p:tab>
+		    </p:tabView>
+   		</h:form>
+	</ui:define>
+</ui:composition>

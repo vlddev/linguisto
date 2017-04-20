@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<faces-config version="2.2"
+	xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+        http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_2.xsd">
+	<name>Linguisto</name>
+
+    <lifecycle>
+        <phase-listener>org.linguisto.webui.listener.DebugPhaseListener</phase-listener>
+    </lifecycle>
+
+   <application>
+      <!-- default-render-kit-id>PRIMEFACES_MOBILE</default-render-kit-id-->
+      <locale-config>
+         <default-locale>uk</default-locale>
+         <supported-locale>de</supported-locale>
+         <supported-locale>en</supported-locale>
+         <supported-locale>uk</supported-locale>
+      </locale-config>
+      <resource-bundle>
+         <base-name>org.linguisto.messages</base-name>
+         <var>msg</var>
+      </resource-bundle>
+      <message-bundle>LocMessages</message-bundle>
+   </application>
+</faces-config>

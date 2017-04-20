@@ -1,0 +1,24 @@
+<ui:composition template="/template/layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+ 
+ 	<ui:define name="metadata">
+	    <f:metadata>
+		    <f:viewParam name="id" value="#{publicationBean.id}"/>
+		    <f:event type="preRenderView" listener="#{publicationBean.loadPublication(publicationBean.id)}"/>
+	    </f:metadata>
+    </ui:define>
+ 
+ 	<ui:define name="title"><h:outputText value="#{publicationBean.getPublication().title}" escape="false"/></ui:define>
+ 
+ 	<ui:define name="content">
+	    <p:panel header="#{publicationBean.getPublication().header}" style="margin-bottom:20px">
+	        <h:panelGrid cellpadding="10">
+	        	<h:outputText value="#{publicationBean.getPublication().content}" escape="false"/>
+	        </h:panelGrid>
+	    </p:panel>
+    </ui:define>
+</ui:composition>

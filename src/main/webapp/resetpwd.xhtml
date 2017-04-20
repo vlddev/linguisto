@@ -1,0 +1,42 @@
+<ui:composition template="/template/layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+
+	<!-- ui:define name="metadata">
+	    <f:metadata>
+		    <f:viewParam name="rid" value="#{signin.resetPwdId}"/>
+		    <f:event type="preRenderView" listener="#{signin.prepareResetPwd(signin.resetPwdId)}"/>
+	    </f:metadata>
+    </ui:define-->
+
+  	<ui:define name="title">Лінгвісто: Скинути пароль</ui:define>
+
+ 	<ui:define name="content">
+ 		<p:panel header="Скинути пароль" style="margin-bottom:20px">
+			<p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
+			<ui:fragment rendered="#{!login.loggedIn and not empty resetpwdBean.resetPwdUser}">
+				<h:form  id="pwdForm" prependId="false">
+					<h:outputText value="Введіть новий пароль для користувача #{resetpwdBean.resetPwdUser.name}." />
+					 <h:panelGrid columns="2" cellpadding="5">
+						<p:outputLabel for="pwd" value="Пароль: " />
+						<p:password id="pwd" value="#{resetpwdBean.pwd}" match="pwd2" required="true" feedback="true" lang="uk"
+							promptLabel="Введіть, будь ласка, пароль"
+							weakLabel="слабкий пароль"
+	                   		goodLabel="добрий пароль"
+	                   		strongLabel="сильний пароль"/>
+	
+						<p:outputLabel for="pwd2" value="Повторіть пароль: " />
+						<p:password id="pwd2" value="#{resetpwdBean.pwd2}" required="true" lang="uk"/>
+					</h:panelGrid>
+					<h:commandButton value="Зберегти пароль" action="#{resetpwdBean.resetPwd}" update="pwdForm"/>
+				</h:form>
+			</ui:fragment>
+			<ui:fragment rendered="#{login.loggedIn}">
+				<h:outputText value="Ви вже ввійшли." />
+			</ui:fragment>
+		</p:panel>
+	</ui:define>
+</ui:composition>

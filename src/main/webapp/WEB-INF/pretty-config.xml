@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<pretty-config xmlns="http://ocpsoft.org/schema/rewrite-config-prettyfaces" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:schemaLocation="http://ocpsoft.org/schema/rewrite-config-prettyfaces
+                      http://ocpsoft.org/xml/ns/prettyfaces/rewrite-config-prettyfaces.xsd">
+
+	<url-mapping id="login">
+		<pattern value="/login" />
+		<view-id value="/login.xhtml" />
+	</url-mapping>
+
+	<!-- /sdictview.xhtml?langf=en?id=123 -->
+	<url-mapping id="dictById">
+		<pattern value="/dict/#{langf}/id/#{id}" />
+		<view-id value="/sdictview.xhtml" />
+	</url-mapping>
+
+	<!-- /sdictview.xhtml?langf=en?word=test -->
+	<url-mapping id="dictByWord">
+		<pattern value="/dict/#{langf}/#{w}" />
+		<view-id value="/sdictview.xhtml" />
+	</url-mapping>
+
+	<!-- /sdictview.xhtml?langf=en -->
+	<url-mapping id="dictByLang">
+		<pattern value="/dict/#{langf}" />
+		<view-id value="/sdictview.xhtml" />
+	</url-mapping>
+
+	<!-- /freqDictView.xhtml?w=test -->
+	<url-mapping id="freqDictByWord">
+		<pattern value="/freq/#{w}" />
+		<view-id value="/freqDictView.xhtml" />
+	</url-mapping>
+
+	<!-- /freqDictView.xhtml -->
+	<url-mapping id="freqDict">
+		<pattern value="/freq" />
+		<view-id value="/freqDictView.xhtml" />
+	</url-mapping>
+
+	<!-- /publicationList.xhtml -->
+	<url-mapping id="publicationList">
+		<pattern value="/publications" />
+		<view-id value="/publicationList.xhtml" />
+	</url-mapping>
+
+	<!-- /publication.xhtml?id=1 -->
+	<url-mapping id="publication">
+		<pattern value="/publication/#{id}" />
+		<view-id value="/publication.xhtml" />
+	</url-mapping>
+	
+</pretty-config>

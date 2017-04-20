@@ -1,0 +1,212 @@
+<ui:composition template="/template/layout.xhtml" 
+    xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+
+	<ui:define name="metadata">
+	    <f:metadata>
+		    <f:viewParam name="id" value="#{sdict.curWordId}"/>
+		    <f:viewParam name="w" value="#{sdict.curWord}"/>
+		    <f:viewParam name="langf" value="#{sdict.langFrom}"/>
+		    <f:viewParam name="browse" value="#{sdict.browserPos}"/>
+		    <f:event type="preRenderView" listener="#{sdict.searchParamTranslation(sdict.curWord, sdict.curWordId, sdict.langFrom)}"/>
+	    </f:metadata>
+    </ui:define>
+
+	<ui:define name="title">Лінгвісто: #{sdict.getDictName()} словник</ui:define>
+	
+	<ui:define name="metatags">
+ 		<meta name="description" 
+ 			content="#{sdict.getDictName()} словник, #{sdict.getDictName()} онлайн словник з можливістю редагування, 
+ 			#{sdict.getDictName('en')} dictionary, #{sdict.getDictName('en')} editable online dictionary"/>
+ 	</ui:define> 		
+	
+ 	<ui:define name="content">
+ 		<!-- h:outputText rendered="#{sdict.setLangFrom('de')}" value=""/-->
+   		<h:form id="main_form">
+		    <p:tabView id="dictTabView" widgetVar="dictTabView" dynamic="true">
+		        <p:tab id="dictTab" title="#{sdict.getDictName()} словник">
+		        	<p:focus context="dictTab"/>
+					<p:inputText id="wordquery" value="#{sdict.searchWord}" size="40" />
+					<p:spacer width="5" />
+					<p:commandButton id="searchButton" value="Пошук"
+						icon="ui-icon-search" ajax="false"
+						action="#{sdict.searchTranslation(sdict.searchWord)}"/>
+					<br />
+					<h:outputText value="Кількість статей в словнику: #{dailyword.getDictStats(sdict.langFrom).wordCount}"
+						escape="false" styleClass="mui-link-font"/>
+					<hr />
+					<h:panelGroup id="output">
+						<h:outputText rendered="#{sdict.searchResultMessage.length()>0}" value="#{sdict.searchResultMessage}" styleClass="mui-message-font"/>
+						<br />
+						<h:button rendered="#{login.loggedIn}" value="нове слово" outcome="dictEditor" >
+							<f:param name="id" value="#{-7}"/>
+							<f:param name="langf" value="#{sdict.langFrom}"/>
+						</h:button>
+					    <p:panel rendered="#{sdict.translation.size()&lt;1 and 'en' == sdict.langFrom}" header="Про англійсько-український словник" >
+							За основу взято <b>Англо-український словник : близько 120000 слів: У 2 т. / склав М. І. Балла. - К. : Освіта, 1996.</b>
+						</p:panel>
+					    <p:panel rendered="#{sdict.translation.size()&lt;1}" header="Перегляд словника" >
+							<ui:insert name="dict_browser" >
+							   <ui:include src="/template/dictBrowser.xhtml"/>
+							</ui:insert>
+					    </p:panel>
+					    <p:panel rendered="#{sdict.translation.size()&lt;1}" header="Випадкові слова" >
+							<ui:insert name="random_words" >
+							   <ui:include src="/template/randomWords.xhtml">
+									<ui:param name="param_lang" value="#{sdict.langFrom}" />
+							   </ui:include>
+							</ui:insert>
+					    </p:panel>
+					    <!-- list of dictionary articles or words -->
+						<p:dataList id="wordList" rendered="#{sdict.translation.size()>0}" value="#{sdict.translation}" var="word" type="none"
+								styleClass="mui-datalist">
+							<h:panelGroup>
+							<!-- article or word -->
+							<b><h:outputText rendered="#{sdict.translation.size()==1}" value="#{word.inf}" />
+							<h:link rendered="#{sdict.translation.size()>1}" outcome="sdictview" value="#{word.inf}" >
+								<f:param name="langf" value="#{word.language}"/>
+								<f:param name="id" value="#{word.id}"/>
+							</h:link></b>
+							<h:outputText value="&#160;" />
+							<h:outputText escape="false" value="#{style.transcriptionBegin}" />
+ 							  <h:outputText value="#{word.transcription}" />
+							  <h:outputText escape="false" value="#{style.transcriptionEnd}" />
+							  <h:outputText rendered="#{not empty word.transcription}" value="&#160;" />
+							  <h:outputText escape="false" value="#{style.typeBegin}" />
+							  <h:outputText value="#{word.type}" converter="#{dbBean.getWordTypeConverterByStr(word.language)}"/>
+							  <h:outputText escape="false" value="#{style.typeEnd}" />
+							<a href="#{'http://uk.forvo.com/word/'.concat(word.getUrlInf()).concat('/#').concat(word.language)}" class="mui-link" target="_blank"><h:graphicImage alt="приклад вимови" value="#{request.contextPath}/img/speaker.png"/></a>
+							  <h:outputText rendered="#{not empty word.rank and word.rank>0}" value="&#160;" />
+							  <h:outputText escape="false" value="#{style.rankBegin}" />
+							  <h:outputText rendered="#{not empty word.rank and word.rank>0}" value="R:#{word.rank}"/>
+							  <h:outputText escape="false" value="#{style.typeEnd}" />
+
+							<!-- list of translations -->
+						    <p:panel rendered="#{word.trList.size()&lt;1}" >
+								<h:outputText value="Це слово ще не має перекладів." styleClass="mui-no-tr-message-font"/><br />
+								<h:outputText rendered="#{login.loggedIn}" value="Ви можете додати переклад натиснувши кнопку редагувати." styleClass="mui-no-tr-message-font"/>
+								<h:outputText rendered="#{not login.loggedIn}" 
+									value="Ви можете редагувати словники увійшовши на сайт. Якщо Ви ще не зареєстровані на сайті, тоді вам необхідно створити обліковий запис."
+									styleClass="mui-no-tr-message-font"/>
+						    </p:panel>
+							<h:panelGrid columns="2" columnClasses="mui-grid-left-column,mui-grid-right-column">
+							    <h:panelGroup>
+									<table style="width:100%;">
+										<ui:repeat value="#{word.trList}" var="tr">
+											<tr><td style="width:20px"/>
+												<td colspan="2">
+												<ui:repeat value="#{tr.getTranslationChunks()}" var="chunk">
+													<h:outputText rendered="#{not empty chunk.styleBegin}" escape="false" value="#{chunk.styleBegin}" />
+													<h:outputText rendered="#{not chunk.link}" value="#{chunk.text}" />
+													<h:link rendered="#{chunk.link}" outcome="sdictview" value="#{chunk.text}" >
+														<f:param name="langf" value="#{word.language}"/>
+														<f:param name="w" value="#{chunk.linkId}"/>
+													</h:link>
+													<h:outputText rendered="#{not empty chunk.styleEnd}" escape="false" value="#{chunk.styleEnd}" />
+												</ui:repeat>
+											</td></tr>
+											<!-- examples -->
+											<h:panelGroup rendered="#{not empty tr.example}">
+												<tr><td style="width:20px"/><td style="width:20px"/>
+												<td>
+												<table style="width:100%">
+													<ui:repeat value="#{tr.examplesChunks}" var="example">
+														<tr><td>
+															<ui:repeat value="#{example}" var="chunk">
+																<h:outputText rendered="#{not empty chunk.styleBegin}" escape="false" value="#{chunk.styleBegin}" />
+																<h:outputText rendered="#{not chunk.link}" value="#{chunk.text}" />
+																<h:link rendered="#{chunk.link}" outcome="sdictview" value="#{chunk.text}" >
+																	<f:param name="langf" value="#{word.language}"/>
+																	<f:param name="w" value="#{chunk.linkId}"/>
+																</h:link>
+																<h:outputText rendered="#{not empty chunk.styleEnd}" escape="false" value="#{chunk.styleEnd}" />
+															</ui:repeat>
+														</td></tr>
+													</ui:repeat>
+												</table>
+												</td></tr>
+											</h:panelGroup>
+										</ui:repeat>
+									</table>
+							    </h:panelGroup>
+							</h:panelGrid>
+							<h:button rendered="#{login.loggedIn}" value="редагувати" outcome="dictEditor" >
+								<f:param name="id" value="#{word.id}"/>
+							</h:button>
+							<h:button rendered="#{login.loggedIn}" value="історія редагувань" outcome="wordHistory">
+								<f:param name="lid" value="#{word.language}#{word.id}"/>
+							</h:button>
+							<br/>
+							<h:panelGroup rendered="#{'de' == word.language}">
+								<h:outputText value="Це слово в інших словниках: " styleClass="mui-link-font"/>
+								<h:outputLink value="#{'http://de.wiktionary.org/wiki/'.concat(word.getUrlInf())}" styleClass="mui-outputlink" target="_blank">
+									<h:outputText value="Wiktionary" styleClass="mui-link-font"/>
+								</h:outputLink> 
+								<h:outputText value=" | " styleClass="mui-link-font"/>
+								<h:outputLink value="#{'http://de.thefreedictionary.com/'.concat(word.getUrlInf())}" styleClass="mui-outputlink" target="_blank">
+									<h:outputText value="TheFreeDictionary" styleClass="mui-link-font"/>
+								</h:outputLink>
+								<h:outputText value=" | " styleClass="mui-link-font"/>
+								<a href="#{'http://duden.de/suchen/dudenonline/'.concat(word.getUrlInf())}" class="mui-link" target="_blank"><h:outputText value="Duden" styleClass="mui-link-font"/></a>
+									<h:outputText value=" | " styleClass="mui-link-font"/>
+									<a href="#{'http://dwds.de/?qu='.concat(word.inf)}" class="mui-link" target="_blank"><h:outputText value="DWDS" styleClass="mui-link-font"/></a>
+								<h:outputText value=" | " styleClass="mui-link-font"/>
+								<a href="#{'https://translate.google.com/#de/uk/'.concat(word.getUrlInf())}" class="mui-link" target="_blank"><h:outputText value="Google" styleClass="mui-link-font"/></a>
+							</h:panelGroup>
+							<h:panelGroup rendered="#{'en' == word.language}">
+								<h:outputText value="Це слово в інших словниках: " styleClass="mui-link-font"/>
+								<h:outputLink value="#{'http://en.wiktionary.org/wiki/'.concat(word.getUrlInf())}" styleClass="mui-outputlink" target="_blank">
+									<h:outputText value="Wiktionary" styleClass="mui-link-font"/>
+								</h:outputLink>
+								<h:outputText value=" | " styleClass="mui-link-font"/>
+								<h:outputLink value="#{'http://thefreedictionary.com/'.concat(word.getUrlInf())}" styleClass="mui-outputlink" target="_blank">
+									<h:outputText value="TheFreeDictionary" styleClass="mui-link-font"/>
+								</h:outputLink>
+								<h:outputText value=" | " styleClass="mui-link-font"/>
+								<a href="#{'https://translate.google.com/#en/uk/'.concat(word.getUrlInf())}" class="mui-link" target="_blank"><h:outputText value="Google" styleClass="mui-link-font"/></a>
+							</h:panelGroup>
+							<hr />
+							</h:panelGroup>
+						</p:dataList>
+					</h:panelGroup>
+		        </p:tab>
+
+		        <p:tab title="Допомога">
+					<h:panelGrid id="help">
+						<h2>Пошуку слова</h2>
+						<p>Для пошуку слова в словнику необхідно ввести шукане слово в текстове поле й натиснути кнопку "Пошук" або клавішу "Введення" (Enter).
+						Пошук залежить від введеного слова. Можливі наступні варіанти:</p>
+						<ol>
+							<li> Якщо введено українське слово, то шукаються англійські / німецькі / французькі (залежно від словника) слова, переклад яких містить шукане українське слово.
+							</li>
+							<li> Якщо введене слово не є українським, то це слово шукається в словнику. Якщо нічого не знайдено, то проводиться пошук по всіх відомих формах слів. 
+							</li>
+						</ol>
+						<h2>Опис словникової статі</h2>
+					    <h:graphicImage alt="Article_ex1" value="#{request.contextPath}/img/Article_ex1.png"/>
+						<ol>
+							<li>Словникова форма слова
+							</li>
+							<li>Транскрипція
+							</li>
+							<li>Частина мови (для німецьких іменників вказано також рід)
+							</li>
+							<li>Приклад вимови на сайті forvo.com
+							</li>
+							<li>Ранг слова в частотному словнику. Чим більше значення, тим рідше зустрічається слово
+							</li>
+							<li>Переклад з можливими коментарями
+							</li>
+							<li>Приклади вживання з перекладами
+							</li>
+						</ol>
+		                <br /><b>Бажаємо Вам корисного і приємного використання!</b>
+				    </h:panelGrid>
+		        </p:tab>
+		    </p:tabView>
+   		</h:form>
+	</ui:define>
+</ui:composition>

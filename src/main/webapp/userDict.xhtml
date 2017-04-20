@@ -1,0 +1,132 @@
+<ui:composition template="/template/layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+ 
+   	<ui:define name="title">Лінгвісто: Вивчені слова</ui:define>
+ 
+ 	<ui:define name="content">
+		<h:form id="userdictform">
+		    <p:tabView>
+		        <p:tab title="Вивчені слова">
+					<ui:fragment rendered="#{login.loggedIn}">
+						<h:panelGrid id="grid" columns="1" style="width: 100%">
+							<h:outputLabel value="Мова словника: " />
+							<h:selectOneMenu id="langFrom" value="#{learn.langFrom}">
+								<f:selectItem itemLabel="англійська" itemValue="en" />
+								<f:selectItem itemLabel="німецька" itemValue="de" />
+							</h:selectOneMenu>
+							<h:outputLabel value="Список слів: " />
+							<p:inputTextarea id="word_list"
+								maxlength="1000" rows="10" autoResize="false"
+								value="#{learn.wordsToFind}" style="width: 100%" />
+							<h:panelGroup colspan="2">
+								<h:commandButton id="find_button"
+									value="Знайти слова"
+									action="#{learn.findUserWords()}">
+									<f:ajax execute="@form" render="output" />
+								</h:commandButton>
+								<h:commandButton id="clear_button" value="Очистити"
+									action="#{learn.clearResult()}">
+									<f:ajax execute="@form" render="output" />
+								</h:commandButton>
+								<h:commandButton id="export_button" value="Експорт вивчених слів"
+									action="#{learn.exportUserWords()}">
+								</h:commandButton>
+								<br />
+								<h:commandButton id="proposed_words_button" value="Слова пропоновані до вивчення"
+									action="#{learn.findProposedWords()}">
+									<f:ajax execute="@form" render="output" />
+								</h:commandButton>
+							</h:panelGroup>
+						</h:panelGrid>
+						<br />
+						<h:panelGrid>
+							<h:panelGroup id="output">
+								<p:dataTable  value="#{learn.words}" var="word" tableStyle="width:auto" emptyMessage="нічого не знайдено">
+									<p:column>
+										<f:facet name="header">
+											<h:outputText value="Слово" />
+										</f:facet>
+										<h:link outcome="sdictview" value="#{word.inf}" target="_blank">
+											<f:param name="langf" value="#{word.language}"/>
+											<f:param name="id" value="#{word.id}"/>
+										</h:link>
+										<h:outputText value=" (" />
+							  			<h:outputText value="#{word.type}" converter="#{dbBean.getWordTypeConverterByStr(word.language)}"/>
+										<h:outputText value=")" />
+									</p:column>
+									<p:column>
+										<f:facet name="header">
+											<h:outputText value="чи знаю" />
+										</f:facet>
+										<h:selectBooleanCheckbox value="#{word.userKnows}" />
+									</p:column>
+								</p:dataTable>
+							</h:panelGroup>
+							<h:panelGroup>
+								<h:commandButton id="save_button" value="Зберегти зміни"
+									action="#{learn.saveUserWords()}">
+								</h:commandButton>
+							</h:panelGroup>
+						</h:panelGrid>
+					</ui:fragment>
+					<ui:fragment rendered="#{!login.loggedIn}">
+						<h:outputText value="Ввійдіть щоб користуватися цим інструментом" />
+					</ui:fragment>
+		        </p:tab>
+		        <p:tab title="Допомога">
+						<p>
+		                За допомогою інструменту 'Вивчені слова' зареєстрований користувач може виконувати наступні дії:
+		                <ul>
+			                <li> шукати в обраному словнику список слів й редагувати вже вивчені слова
+			                </li>
+			                <li> експортувати список вивчених слів в тестовий файл
+			                </li>
+			                <li> показати слова пропоновані до вивчення - частовживані слова, яких користувач ще не знає
+			                </li>
+		                </ul>
+		                Сценарії використання інструменту:
+		                <ol>
+		                	<li> Щоб провести пошук списку слів в обраному словнику й відредагувати вже вивчені слова,
+		                	потрібно виконати наступні дії (можливий результат показано на зображенні нижче):
+		                		<ul>
+		                			<li> Вибрати мову словника з випадаючого списку під написом 'Мова словника'
+		                			</li>
+		                			<li> Ввести або скопіювати список слів в поле під написом 'Список слів'. Довжина тексту обмежена 1000 символів.
+		                			</li>
+		                			<li> Натиснути кнопку 'Знайти слова', після чого з'явиться таблиця зі списком знайдених слів в колонці 'слово' і 
+		                			галочками з відмітками про те, чи знає користувач це слово в колонці 'чи знаю'.
+		                			</li>
+		                			<li> вімітити в галочками вивчені слова, або забрати галочки навпроти невідомих слів.
+		                			</li>
+		                			<li> Натиснути кнопку 'Зберегти зміни'
+		                			</li>
+		                		</ul>
+		                	</li>
+		                	<li> Щоб переглянути й відредагувати список слів пропонованих до вивчення,
+		                	потрібно виконати наступні дії:
+		                		<ul>
+		                			<li> Вибрати мову словника з випадаючого списку під написом 'Мова словника'
+		                			</li>
+		                			<li> Натиснути кнопку 'Слова пропоновані до вивчення', після чого з'явиться таблиця зі списком знайдених слів в колонці 'слово' і 
+		                			галочками з відмітками про те, чи знає користувач це слово в колонці 'чи знаю'.
+		                			</li>
+		                			<li> вімітити в галочками вивчені слова, або забрати галочки навпроти невідомих слів.
+		                			</li>
+		                			<li> Натиснути кнопку 'Зберегти зміни'
+		                			</li>
+		                		</ul>
+		                	</li>
+		                </ol>
+		                <br /><b>Бажаємо Вам корисного і приємного використання!</b>
+		                <br />
+					    <h:graphicImage alt="Userdict_ex1" value="./img/Userdict_ex1.png"/>
+						</p>
+		        </p:tab>
+		    </p:tabView>
+   		</h:form>
+	</ui:define>
+</ui:composition>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jboss-web>
+    <resource-ref>
+        <res-ref-name>jdbc/MySQLDS</res-ref-name>
+        <jndi-name>java:jboss/datasources/MySQLDS</jndi-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+    <context-root>/</context-root>
+    
+    <!-- HttpSession Passivation -->
+	<max-active-sessions>30</max-active-sessions>
+	<!-- passivation-config>
+	   <use-session-passivation>true</use-session-passivation>
+	   <passivation-min-idle-time>120</passivation-min-idle-time>
+	   <passivation-max-idle-time>600</passivation-max-idle-time>
+	</passivation-config-->
+</jboss-web>

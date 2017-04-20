@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="#{login.locale}"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+	<body>
+ 	<ui:composition>
+		<p:dataList rendered="#{dailyword.getDailyWords(param_lang,25).size()>0}" 
+				value="#{dailyword.getDailyWords(param_lang,25)}" var="word" type="none"
+				styleClass="mui-datalist">
+			<h:panelGroup>
+			<!-- h:outputText value="#{word.inf}" / -->
+			<b><h:link outcome="sdictview" value="#{word.inf}" >
+				<f:param name="langf" value="#{word.language}"/>
+				<f:param name="id" value="#{word.id}"/>
+			</h:link></b>
+			<h:outputText value="&#160;" />
+			<h:outputText escape="false" value="#{style.transcriptionBegin}" />
+			  <h:outputText value="#{word.transcription}" />
+			  <h:outputText escape="false" value="#{style.transcriptionEnd}" />
+			  <h:outputText rendered="#{not empty word.transcription}" value="&#160;" />
+			  <h:outputText escape="false" value="#{style.typeBegin}" />
+			  <h:outputText value="#{word.type}" converter="#{dbBean.getWordTypeConverterByStr(word.language)}"/>
+			  <h:outputText escape="false" value="#{style.typeEnd}" />
+			<a href="#{'http://uk.forvo.com/word/'.concat(word.inf).concat('/#').concat(word.language)}" class="mui-link" target="_blank"><h:graphicImage alt="приклад вимови" value="#{request.contextPath}/img/speaker.png"/></a>
+			  <h:outputText rendered="#{not empty word.rank and word.rank>0}" value="&#160;" />
+			  <h:outputText escape="false" value="#{style.rankBegin}" />
+			  <h:outputText rendered="#{not empty word.rank and word.rank>0}" value="R:#{word.rank}"/>
+			  <h:outputText escape="false" value="#{style.typeEnd}" />
+
+			<table style="width:100%">
+				<ui:repeat value="#{word.trList}" var="tr">
+					<tr style="padding: 0px 0px;"><td style="width:20px; padding: 0px 0px;"/>
+						<td colspan="2" style="padding: 0px 0px;">
+						<ui:repeat value="#{tr.getTranslationChunks()}" var="chunk">
+							<h:outputText rendered="#{not empty chunk.styleBegin}" escape="false" value="#{chunk.styleBegin}" />
+							<h:outputText rendered="#{not chunk.link}" value="#{chunk.text}" />
+							<h:outputText rendered="#{not empty chunk.styleEnd}" escape="false" value="#{chunk.styleEnd}" />
+							<h:link rendered="#{chunk.link}" outcome="sdictview" value="#{chunk.text}" >
+								<f:param name="langf" value="#{word.language}"/>
+								<f:param name="w" value="#{chunk.linkId}"/>
+							</h:link>
+						</ui:repeat>
+					</td></tr>
+					<!-- examples -->
+					<h:panelGroup rendered="#{not empty tr.example}">
+						<tr style="padding: 0px 0px;"><td style="width:20px; padding: 0px 0px;"/><td style="width:20px; padding: 0px 0px;"/>
+						<td style="padding: 0px 0px;">
+						<table style="width:100%">
+							<ui:repeat value="#{tr.examplesChunks}" var="example">
+								<tr style="padding: 0px 0px;"><td style="padding: 0px 0px;">
+									<ui:repeat value="#{example}" var="chunk">
+										<h:outputText rendered="#{not empty chunk.styleBegin}" escape="false" value="#{chunk.styleBegin}" />
+										<h:outputText rendered="#{not chunk.link}" value="#{chunk.text}" />
+										<h:link rendered="#{chunk.link}" outcome="sdictview" value="#{chunk.text}" >
+											<f:param name="langf" value="#{word.language}"/>
+											<f:param name="w" value="#{chunk.linkId}"/>
+										</h:link>
+										<h:outputText rendered="#{not empty chunk.styleEnd}" escape="false" value="#{chunk.styleEnd}" />
+									</ui:repeat>
+								</td></tr>
+							</ui:repeat>
+						</table>
+						</td></tr>
+					</h:panelGroup>
+				</ui:repeat>
+			</table>
+			</h:panelGroup>
+		</p:dataList>
+    </ui:composition>
+    </body>
+</html>

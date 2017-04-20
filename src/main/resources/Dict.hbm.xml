@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+ 
+<hibernate-mapping package="org.linguisto.hibernate.obj">
+ 
+	<filter-def name="langToFilter">
+	    <filter-param name="langToParam" type="string"/>
+	</filter-def>
+
+    <class name="Word" lazy="false" table="inf">
+        <id name="id" column="id">
+            <generator class="native"/>
+        </id>
+        <property name="wordType" column="type" />
+ 		<list name="translations" table="tr" inverse="true" lazy="false" cascade="save-update, delete-orphan">
+        	<key column="fk_inf" not-null="true"/>
+        	<list-index column="order_nr" base="1"/>
+        	<one-to-many class="org.linguisto.hibernate.obj.Translation"/>
+        	<filter name="langToFilter" condition=":langToParam = tr_lang"/>
+        </list>
+        <property name="word" column="inf" update="false" />
+        <property name="lang" column="lang"/>
+        <property name="transcription" column="transcription"/>
+        <property name="rank" column="rank" update="false" />
+    </class>
+ 
+     <class name="Translation" lazy="false" table="tr">
+        <id name="id" column="id">
+            <generator class="native"/>
+        </id>
+        <many-to-one name="fromWord" column="fk_inf" class="org.linguisto.hibernate.obj.Word" lazy="false" not-null="true"/>
+        <property name="trOrder" column="order_nr" />
+        <property name="trLang" column="tr_lang"/>
+        <property name="translation" column="translation"/>
+        <property name="example" column="example"/>
+       	<filter name="langToFilter" condition=":langToParam = tr_lang"/>
+    </class>
+
+     <class name="WordType" table="word_type" mutable="false">
+        <cache usage="read-only"/>
+        <id name="id" column="id">
+            <generator class="native"/>
+        </id>
+        <property name="lang" column="lang"/>
+        <property name="desc" column="[desc]" />
+        <property name="comment" column="comment"/>
+     </class>
+
+     <class name="History" lazy="false" table="history">
+        <id name="id" column="id">
+            <generator class="native"/>
+        </id>
+        <many-to-one name="inf" column="inf_id" class="org.linguisto.hibernate.obj.Word" lazy="false" not-null="true"/>
+        <property name="langTo" column="lang_to"/>
+        <property name="val" column="val" />
+        <property name="uid" column="uid"/>
+    </class>
+ 
+</hibernate-mapping>

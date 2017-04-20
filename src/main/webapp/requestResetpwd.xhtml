@@ -1,0 +1,31 @@
+<ui:composition template="/template/layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+
+  	<ui:define name="title">Лінгвісто: Скинути пароль</ui:define>
+
+ 	<ui:define name="content">
+ 		<p:panel header="Скинути пароль" style="margin-bottom:20px">
+			<p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
+			<ui:fragment rendered="#{!login.loggedIn and empty resetpwdBean.resetPwdUser}">
+				<h:form id="resetForm" prependId="false">
+					<h:outputText value="Заповніть одне з полів щоб скинути пароль. Електронною поштою ви отримаєте листа з описом подальших дій."/>
+					 <h:panelGrid id="grid" columns="2" cellpadding="5">
+						<p:outputLabel for="username" value="Ім'я користувача: " />
+						<p:inputText id="username" value="#{resetpwdBean.userName}"/>
+	
+						<p:outputLabel for="email" value="Адреса електронної пошти: " />
+						<p:inputText id="email" value="#{resetpwdBean.userEmail}"/>
+					</h:panelGrid>
+					<p:commandButton value="Скинути пароль" action="#{resetpwdBean.requestResetPwd()}" update="resetForm"/>
+				</h:form>
+			</ui:fragment>
+			<ui:fragment rendered="#{login.loggedIn}">
+				<h:outputText value="Ви вже ввійшли." />
+			</ui:fragment>
+		</p:panel>
+	</ui:define>
+</ui:composition>

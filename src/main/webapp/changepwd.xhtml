@@ -1,0 +1,37 @@
+<ui:composition template="/template/layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+
+ 	<ui:define name="title">Лінгвісто: Змінити пароль</ui:define>
+
+ 	<ui:define name="content">
+ 		<p:panel header="Змінити пароль" style="margin-bottom:20px">
+			<ui:fragment rendered="#{login.loggedIn}">
+				<h:form id="pf" prependId="false">
+					<p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
+					 <h:panelGrid id="grid" columns="2" cellpadding="5">
+						<p:outputLabel for="pwd" value="Пароль: " />
+						<p:password id="pwd" value="#{changeUserData.pwd}" required="true"/>
+	
+						<p:outputLabel for="newpwd" value="Новий пароль: " />
+						<p:password id="newpwd" value="#{changeUserData.newpwd}" match="newpwd2" required="true" feedback="true"
+							promptLabel="Введіть, будь ласка, пароль"
+							weakLabel="слабкий пароль"
+                    		goodLabel="добрий пароль"
+                    		strongLabel="сильний пароль"/>
+	
+						<p:outputLabel for="newpwd2" value="Повторіть новий пароль: " />
+						<p:password id="newpwd2" value="#{changeUserData.newpwd2}" required="true"/>
+					</h:panelGrid>
+					<p:commandButton value="Змінити" action="#{changeUserData.changePwd()}" update="pf"/>
+				</h:form>
+			</ui:fragment>
+			<ui:fragment rendered="#{!login.loggedIn}">
+				<h:outputText value="Ввійдіть щоб користуватися цим інструментом" />
+			</ui:fragment>
+		</p:panel>
+	</ui:define>
+</ui:composition>

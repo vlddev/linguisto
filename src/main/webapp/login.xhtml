@@ -1,0 +1,29 @@
+<ui:composition template="/template/layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+
+ 	<ui:define name="title">Лінгвісто: Вхід</ui:define>
+
+ 	<ui:define name="content">
+ 		<p:panel header="Вхід" style="margin-bottom:20px">
+			<ui:fragment rendered="#{!login.loggedIn}">
+				<h:form id="pf" prependId="false">
+					<p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
+					 <h:panelGrid id="grid" columns="2" cellpadding="5">
+						<h:outputLabel for="uName" value="Користувач:" />
+						<p:inputText id="uName" value="#{login.userName}" requrid="true" size="30" />
+						<h:outputLabel for="uPwd" value="Пароль: " />
+						<p:password id="uPwd" value="#{login.userPwd}" size="30" />
+					</h:panelGrid>
+					<p:commandButton value="Увійти" action="#{login.login}" ajax="false"/>
+				</h:form>
+			</ui:fragment>
+			<ui:fragment rendered="#{login.loggedIn}">
+				<h:outputText value="Ви вже ввійшли." />
+			</ui:fragment>
+		</p:panel>
+	</ui:define>
+</ui:composition>

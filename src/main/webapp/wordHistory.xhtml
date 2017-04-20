@@ -1,0 +1,59 @@
+<ui:composition template="/template/layout.xhtml" 
+    xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+
+	<!--  ui:define name="metadata">
+	    <f:metadata>
+		    <f:viewParam name="id" value="#{history.wordLangId}"/>
+		    <f:event type="preRenderView" listener="#{history.searchTranslation(sdict.searchWord, sdict.wordId, 'de')}"/>
+	    </f:metadata>
+    </ui:define-->
+
+	<ui:define name="title">Лінгвісто: Історія редагувань слова</ui:define>
+
+ 	<ui:define name="content">
+   		<h:form id="main_form" >
+				<ui:fragment rendered="#{login.loggedIn}">
+					<h:panelGrid>
+						<p:dataTable value="#{history.getWordHistory()}" var="hist" emptyMessage="нічого не знайдено">
+							<f:facet name="header">
+								<h:outputText value="Історія редагувань" />
+							</f:facet>
+							<p:column>
+								<f:facet name="chdate">
+									<h:outputText value="Дата" />
+								</f:facet>
+								<h:outputText value="#{hist.chDate}" >
+									<f:convertDateTime type="datetime" pattern="dd.MM.yyyy hh:mm:ss"/>
+								</h:outputText>
+							</p:column>
+							<p:column>
+								<f:facet name="user">
+									<h:outputText value="Користувач" />
+								</f:facet>
+								<h:outputText value="#{hist.userName}" />
+							</p:column>
+							<p:column>
+								<f:facet name="article">
+									<h:outputText value="Стаття" />
+								</f:facet>
+								<h:outputText value="#{hist.val}" styleClass="mui-wrap"/>
+							</p:column>
+							<p:column>
+								<f:facet name="diff">
+									<h:outputText value="Різниця" />
+								</f:facet>
+								<h:outputText value="#{hist.diff}" escape="false" />
+							</p:column>
+						</p:dataTable>
+					</h:panelGrid>
+				</ui:fragment>
+				<ui:fragment rendered="#{!login.loggedIn}">
+					<h:outputText value="Ввійдіть щоб користуватися цим інструментом" />
+				</ui:fragment>
+   		</h:form>
+	</ui:define>
+</ui:composition>

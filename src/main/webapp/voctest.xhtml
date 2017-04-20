@@ -1,0 +1,107 @@
+<ui:composition template="/template/layout.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+ 
+ 	<ui:define name="title">Лінгвісто: Тест словникового запасу</ui:define>
+	
+	<ui:define name="metatags">
+ 		<meta name="description" 
+ 			content="Тест вашого словникового запасу (приблизної кількості відомих вам слів) в англійській, німецькій чи українській мові."/>
+ 	</ui:define> 		
+ 
+ 	<ui:define name="content">
+   		<h:form id="main_form">
+ 		    <p:tabView>
+		        <p:tab title="Тест словникового запасу">
+    <p:growl id="growl" sticky="true" showDetail="true"/>
+ 
+    <p:wizard widgetVar="wiz" flowListener="#{voctest.onFlowProcess}" nextLabel="Далі" backLabel="Назад">
+        <p:tab id="intro" title="Передмова">
+            <p:panel>
+            	<h2>Кілька слів про цей тест</h2>
+				<p>Словниковий запас поділяють на два види: активний і пасивний.
+				  Активний словниковий запас – це ті слова, які людина регулярно вживає в усному мовленні та письмі.
+				  Пасивний словниковий запас – цей набір слів, які людина знає і розуміє на слух або при читанні.
+				</p>
+				<p>Цей тест допоможе вам оцінити Ваш <b>пасивний словниковий запас</b>.
+				</p>
+				<p>Трохи статистики для розуміння результатів тесту. Пасивний словниковий запас рідної мови освіченої людини, за різними оцінками, 
+				  становить не менше 50 - 60 тисяч слів.
+				</p>
+				<p>Максимально можливі результати тесту: українська мова – 94000 слів, англійська й німецька мови – 50000 слів.
+				</p>
+            </p:panel>
+        </p:tab>
+
+        <p:tab id="language" title="Вибір мови">
+            <p:panel>
+                <p:messages />
+                <h:panelGrid columns="2" columnClasses="label, value">
+                    <h:outputText value="Мова: " />
+					<h:selectOneMenu id="dlLang" value="#{voctest.lang}">
+						<f:selectItem itemLabel="англійська" itemValue="en" />
+						<f:selectItem itemLabel="німецька" itemValue="de" />
+						<f:selectItem itemLabel="українська" itemValue="uk" />
+					</h:selectOneMenu>
+                    <h:outputText value="Чи є мова тесту рідною? " />
+					<h:selectBooleanCheckbox value="#{voctest.native}" />
+                    <h:outputText value="Ваш вік: *" />
+					<h:inputText id="ageField" required="true" value="#{voctest.age}"
+						requiredMessage="Поле 'Ваш вік' є обов'язковим"
+						validatorMessage="Очікується вік від 1 до 120 років">
+						<f:validateLongRange minimum="1" maximum="120" for="ageField"/>
+					</h:inputText>
+                    <h:outputText value="Ваш освіта: " />
+					<h:selectOneMenu id="dlEdu" value="#{voctest.education}">
+						<f:selectItem itemLabel="---" itemValue="---" />
+						<f:selectItem itemLabel="початкова" itemValue="початкова" />
+						<f:selectItem itemLabel="середня" itemValue="середня" />
+						<f:selectItem itemLabel="незакінчена вища" itemValue="незакінчена вища" />
+						<f:selectItem itemLabel="вища" itemValue="вища" />
+					</h:selectOneMenu>
+                </h:panelGrid>
+                <h:outputText value="Дана інформація потрібна для створення статистики знання мов (перш за все, української мови).&lt;br/&gt;
+                	Будь ласка, надавайте правдиву інформацію."
+                	escape="false"
+                	style="font-weight:bold;color:blue"/>
+            </p:panel>
+        </p:tab>
+ 
+        <p:tab id="step1" title="Груба оцінка">
+            <p:panel>
+                <p:messages />
+                <h:outputText value="Відмітьте відомі вам слова." />
+				<p:dataGrid rendered="#{voctest.step1Words.size()>0}" value="#{voctest.step1Words}" var="word"
+						columns="3" layout="grid">
+					<h:selectBooleanCheckbox value="#{word.known}" />
+					<h:outputText value="#{word.word}" /><br/>
+                </p:dataGrid>
+            </p:panel>
+        </p:tab>
+ 
+        <p:tab id="step2" title="Уточнення">
+            <p:panel>
+                <p:messages />
+                <h:outputText value="Відмітьте відомі вам слова." />
+				<p:dataGrid rendered="#{voctest.step2Words.size()>0}" value="#{voctest.step2Words}" var="word"
+						columns="3" layout="grid">
+					<h:selectBooleanCheckbox value="#{word.known}" />
+					<h:outputText value="#{word.word}" /><br/>
+                </p:dataGrid>
+            </p:panel>
+        </p:tab>
+ 
+        <p:tab id="result" title="Результат">
+            <p:panel>
+                <h:outputText value="Ваш словниковий запас становить: #{voctest.result}" /><br/>
+            </p:panel>
+        </p:tab>
+    </p:wizard>
+		        </p:tab>
+		    </p:tabView>
+	</h:form>
+	</ui:define>
+</ui:composition>

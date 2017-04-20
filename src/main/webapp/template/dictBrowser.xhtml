@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="#{login.locale}"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+	<body>
+ 	<ui:composition>
+		<p:dataGrid var="lst" value="#{sdict.getBrowserPrefixes()}" columns="1">
+			<h:panelGroup>
+				<ui:repeat value="#{lst}" var="pair">
+					<h:link rendered="#{!sdict.browserPos.startsWith(pair.key)}" outcome="sdictview" value="#{pair.key}" >
+						<f:param name="langf" value="#{sdict.langFrom}"/>
+						<f:param name="browse" value="#{pair.value}"/>
+					</h:link>
+					<h:outputText rendered="#{sdict.browserPos.startsWith(pair.key)}" escape="false" value="&lt;b>#{pair.key}&lt;/b>"/>
+					<h:outputText value=" | "/>
+				</ui:repeat>
+			</h:panelGroup>
+		</p:dataGrid>
+		<p:dataGrid var="word" value="#{sdict.getBrowserWords()}" columns="4" layout="grid"
+				styleClass="mui-datagrid">
+			<h:link outcome="sdictview" value="#{word.inf}" >
+				<f:param name="langf" value="#{word.language}"/>
+				<f:param name="id" value="#{word.id}"/>
+			</h:link>
+		</p:dataGrid>
+    </ui:composition>
+    </body>
+</html>
