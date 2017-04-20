@@ -27,17 +27,19 @@ Installation
 Installation (on Ubuntu Linux)
 ------------
 
-###Database
+### Database
 
 1. Create database linguistodb in MySql
-   run in command line `mysql -u <username> -p<password>`
-   run install.sql in mysql: `mysql> source install.sql`
 
-###Build linguisto.war
+   run in command line in the directory **linguisto/src/main/db$** `mysql -u <username> -p<password>`
+   
+   run install.sql in mysql: **mysql>** `source install.sql`
+
+### Build linguisto.war
 
 1. Run `mvn clean install` in command line in directory /linguisto , linguisto.war will be generated in /linguisto/target/
 
-###Configure Wildfly (JBoss).
+### Configure Wildfly (JBoss).
 
 This application was tested with Wildfly 8.2.0
 
@@ -45,7 +47,7 @@ This application was tested with Wildfly 8.2.0
 
 2. Add datasource to wildfly-8.2.0/standalone/configuration/standalone.xml
 
-<blockquote>
+```xml
         <datasource jndi-name="java:jboss/datasources/MySQLDS" pool-name="MySQLDS" enabled="true" use-java-context="true" spy="true" use-ccm="true">
             <connection-url>jdbc:mysql://localhost/linguistodb?autoCommit=false&amp;useUnicode=true&amp;characterEncoding=UTF-8</connection-url>
             <connection-property name="autoCommit">false</connection-property>
@@ -64,7 +66,7 @@ This application was tested with Wildfly 8.2.0
                 <background-validation-millis>60000</background-validation-millis>
             </validation>
         </datasource>
-</blockquote>
+```
 
 3. Deploy linguisto.war to wildfly-8.2.0/standalone/deployments/
 
