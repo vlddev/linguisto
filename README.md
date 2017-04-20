@@ -1,17 +1,43 @@
+Linguisto Portal
+================
+This software is used on http://linguisto.eu/
+
+Features:
+* Viewing and editing bilingual dictionaries.
+* Test your vocabulary size (Ukrainian, English, German).
+* Mark known words in portal dictionaries (registered users only).
+* Learning texts: Prepare some text by adding notes to words unknown for the user. Prepared text can be viewed in browser or exported to fb2 file.
+
+Портал «Лінгвісто»
+==================
+Дане програмне забезпечення використовується на сайті http://linguisto.eu/.
+
+Можливості:
+* Створення, перегляд та наповнення двомовних онлайн-словників.
+* Редагувати дані словників можуть всі зареєстровані користувачі.
+* Тестування словникового запасу (українська, англійска, німеціка).
+* Можливість позначати вже вивчені слова певного словника (тільки для зареєстрованих користувачів)
+* Навчальні тексти: можливість підготовити текст з врахуванням вже знайомих користувачу слів певного словника. До всіх незнайомих слів додаються зноски з перекладом, що спрощує читання тексту. Оброблений таким чином текст можна переглядати в браузері або зберегти в форматі fb2 й читати за допомогою програми CoolReader3 на вашому улюбленому пристрої. (тільки для зареєстрованих користувачів)
+
+
 Installation
+============
+
+
+Installation (on Ubuntu Linux)
 ------------
 
-Database
+###Database
 
 1. Create database linguistodb in MySql
-   run "mysql -u <username> -p<password>"
-   run install.sql: mysql> source install.sql
+   run in command line `mysql -u <username> -p<password>`
+   run install.sql in mysql: `mysql> source install.sql`
 
-Build linguisto.war
+###Build linguisto.war
 
-1. Run 'mvn clean install' in /linguisto , linguisto.war will be generated in /linguisto/target/
+1. Run `mvn clean install` in command line in directory /linguisto , linguisto.war will be generated in /linguisto/target/
 
-Configure Wildfly (JBoss).
+###Configure Wildfly (JBoss).
 
 This application was tested with Wildfly 8.2.0
 
@@ -19,24 +45,26 @@ This application was tested with Wildfly 8.2.0
 
 2. Add datasource to wildfly-8.2.0/standalone/configuration/standalone.xml
 
-                <datasource jndi-name="java:jboss/datasources/MySQLDS" pool-name="MySQLDS" enabled="true" use-java-context="true" spy="true" use-ccm="true">
-                    <connection-url>jdbc:mysql://localhost/linguistodb?autoCommit=false&amp;useUnicode=true&amp;characterEncoding=UTF-8</connection-url>
-                    <connection-property name="autoCommit">false</connection-property>
-                    <driver>mysql</driver>
-                    <pool>
-                        <min-pool-size>1</min-pool-size>
-                        <max-pool-size>20</max-pool-size>
-                    </pool>
-                    <security>
-                        <user-name>appuser</user-name>
-                        <password>appuser</password>
-                    </security>
-                    <validation>
-                        <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
-                        <background-validation>true</background-validation>
-                        <background-validation-millis>60000</background-validation-millis>
-                    </validation>
-                </datasource>
+<blockquote>
+        <datasource jndi-name="java:jboss/datasources/MySQLDS" pool-name="MySQLDS" enabled="true" use-java-context="true" spy="true" use-ccm="true">
+            <connection-url>jdbc:mysql://localhost/linguistodb?autoCommit=false&amp;useUnicode=true&amp;characterEncoding=UTF-8</connection-url>
+            <connection-property name="autoCommit">false</connection-property>
+            <driver>mysql</driver>
+            <pool>
+                <min-pool-size>1</min-pool-size>
+                <max-pool-size>20</max-pool-size>
+            </pool>
+            <security>
+                <user-name>appuser</user-name>
+                <password>appuser</password>
+            </security>
+            <validation>
+                <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
+                <background-validation>true</background-validation>
+                <background-validation-millis>60000</background-validation-millis>
+            </validation>
+        </datasource>
+</blockquote>
 
 3. Deploy linguisto.war to wildfly-8.2.0/standalone/deployments/
 

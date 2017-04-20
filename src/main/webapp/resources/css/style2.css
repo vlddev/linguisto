@@ -21,11 +21,6 @@
     border: none !important;
 }
 
-/*
-.mui-panelgrid.ui-panelgrid td, tr {
-    border-style: none !important;
-}*/
-
 .mui-panelgrid td {
     vertical-align: top;
 }
