@@ -1,6 +1,7 @@
 source create_db.sql;
 source create_tables.sql;
 source sample_data.sql;
+source word_type.sql;
 source sample_dict.sql;
 source sample_stats_yearly.sql;
 source de_frequency.sql;
