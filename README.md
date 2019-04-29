@@ -1,6 +1,6 @@
 Linguisto Portal
 ================
-This software is used on http://linguisto.eu/
+This software was used on http://linguisto.eu/ (the same databese is used now on http://linguisto.epizy.com/)
 
 Features:
 * Viewing and editing bilingual dictionaries.
@@ -10,12 +10,12 @@ Features:
 
 Портал «Лінгвісто»
 ==================
-Дане програмне забезпечення використовується на сайті http://linguisto.eu/.
+Дане програмне забезпечення використовувалося на сайті http://linguisto.eu/. (та сама база даних використовується на http://linguisto.epizy.com/)
 
 Можливості:
 * Створення, перегляд та наповнення двомовних онлайн-словників.
 * Редагувати дані словників можуть всі зареєстровані користувачі.
-* Тестування словникового запасу (українська, англійска, німеціка).
+* Тестування словникового запасу (українська, англійска, німецька).
 * Можливість позначати вже вивчені слова певного словника (тільки для зареєстрованих користувачів)
 * Навчальні тексти: можливість підготовити текст з врахуванням вже знайомих користувачу слів певного словника. До всіх незнайомих слів додаються зноски з перекладом, що спрощує читання тексту. Оброблений таким чином текст можна переглядати в браузері або зберегти в форматі fb2 й читати за допомогою програми CoolReader3 на вашому улюбленому пристрої. (тільки для зареєстрованих користувачів)
 
@@ -34,6 +34,8 @@ Installation (on Ubuntu Linux)
    run in command line in the directory **linguisto/src/main/db$** `mysql -u <username> -p<password>`
    
    run install.sql in mysql: **mysql>** `source install.sql`
+
+More about database structure and scrips you can read here: https://github.com/vlddev/linguisto/tree/master/src/main/db
 
 ### Build linguisto.war
 
