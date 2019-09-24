@@ -20,8 +20,8 @@ import javax.faces.context.FacesContext;
 import javax.servlet.http.HttpServletResponse;
 
 import org.linguisto.beans.user.LoginBean;
-import org.linguisto.learn.Sentence;
 import org.linguisto.learn.Text;
+import org.linguisto.learn.TextPOS;
 import org.linguisto.learn.Word;
 
 @ManagedBean(name="learn")
@@ -41,7 +41,7 @@ public class LearnBean extends AbstractDbBean {
 	private String langTo = "uk";
 	private String dictName = "en_uk";
 	private Future<Text> futureText;
-	private Text resultText;
+	private TextPOS resultText;
 	private List<Word> words = null;
 
 	
@@ -93,12 +93,12 @@ public class LearnBean extends AbstractDbBean {
 			}
 			mapDictNameWithLangs();
 
-			resultText =  getDBManager().makeText(text, new Locale(langFrom), new Locale(langTo), login.getUser());
-			String sDebug = "";
-			for (Sentence sent : resultText.getSentences()) {
-				sDebug += (sent.isNewParagraph()?"<p> ":"")+sent.getContent();
-			}
-			log.fine(sDebug);
+			resultText =  getDBManager().makeTextPOS(text, new Locale(langFrom), new Locale(langTo), login.getUser());
+			//String sDebug = "";
+			//for (Sentence sent : resultText.getSentences()) {
+			//	sDebug += (sent.isNewParagraph()?"<p> ":"")+sent.getContent();
+			//}
+			//log.fine(sDebug);
 		} catch (Exception e) {
 			log.log(Level.SEVERE, e.getMessage(), e);
 		}
@@ -349,7 +349,7 @@ public class LearnBean extends AbstractDbBean {
 		return futureText;
 	}
 
-	public Text getResultText() {
+	public TextPOS getResultText() {
 		return resultText;
 	}
 

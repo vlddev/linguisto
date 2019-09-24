@@ -1,30 +1,24 @@
 package org.linguisto.learn;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Locale;
-import java.util.StringTokenizer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import edu.stanford.nlp.tagger.maxent.MaxentTagger;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.linguisto.learn.db.Dictionary;
 import org.linguisto.utils.CountHashtable;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 
 /** Input text. Contains set of Sentences. 
  */
-public class Text {
+public class TextPOS {
 
     public static final String LINE_SEPARATOR = System.getProperty("line.separator");
     public static final String DIVIDER_CHARS = ".,:;!?§$%&/()=[]\\#+*<>{}\"—…«»“”•~^‹› \t\r\n";
@@ -46,7 +40,7 @@ public class Text {
      */
     public static final int FIND_WORD_GERMAN = 2;
 
-    public static final Logger log = Logger.getLogger(Text.class.getName());
+    public static final Logger log = Logger.getLogger(TextPOS.class.getName());
 
     private Dictionary dict;
 
@@ -54,8 +48,11 @@ public class Text {
     private Locale targetLang;
     private String content;
 
+    private MaxentTagger posTagger;
+    private EnPOSTagSet enPOSTagSet = new EnPOSTagSet();
+
     //Sentences
-    List<Sentence> sentences;
+    List<SentencePOS> sentences;
 
     //number of words in text
     int wCount;
@@ -68,7 +65,7 @@ public class Text {
 
     //distinct words
     CountHashtable<String> distWords;
-    
+
     //unrecognized words
     HashSet<String> unrecognizedWords = new HashSet<String>();
 
@@ -83,30 +80,31 @@ public class Text {
 
     //fb2 notes for this text
     HashMap<String, String> fb2Notes = new HashMap<String, String>();
-    
+
     int noteCounter = 1;
 
     /** Constructor for texts
      */
-    public Text(String content, Locale lang, Dictionary d) throws IOException{
-    	this(content, lang, "utf-8", d);
+    public TextPOS(String content, Locale lang, Dictionary d, MaxentTagger posTagger) throws IOException{
+    	this(content, lang, "utf-8", d, posTagger);
     }
-    
+
     /** Constructor for texts
      */
-    public Text(String content, Locale lang, String encoding, Dictionary d) throws IOException{
+    public TextPOS(String content, Locale lang, String encoding, Dictionary d, MaxentTagger posTagger) throws IOException{
     	if(d==null){
 	        throw new NullPointerException("Dictionary is null");
     	}
         this.dict = d;
         this.lang = lang;
         this.content = content;
+        this.posTagger = posTagger;
 
         //init object
         init();
     }
 
-    public List<Sentence> getSentences() {
+    public List<SentencePOS> getSentences() {
         return sentences;
     }
 
@@ -127,7 +125,7 @@ public class Text {
             }
         }
 
-        sentences = new ArrayList<Sentence>();
+        sentences = new ArrayList<SentencePOS>();
 
         //1. replace "..." with "…"
         content = content.replace("...","…");
@@ -137,26 +135,29 @@ public class Text {
         SentenceReader2 sr = new SentenceReader2(content);
         try {
             String str = sr.readSentence();
-            Sentence sent;
+            SentencePOS sent;
             int prevSentPos = 0;
             boolean newParagraph = false;
             boolean prevSentEndsWithEmptyLine = false;
             boolean sentEndsWithEmptyLine = false;
             while (str != null) {
                 newParagraph = sentences.size() == 0 || prevSentEndsWithEmptyLine;
-                //sentEndsWithEmptyLine = str.endsWith("\n\n") || str.endsWith("\r\n\r\n");
                 sentEndsWithEmptyLine = str.endsWith("\n") || str.endsWith("\r\n");
-                str = str.replace(LINE_SEPARATOR," ");
-                sent = new Sentence(str);
-                sent.setStartPosInText(prevSentPos);
-                sent.setId(sentences.size());
-                if (newParagraph) {
-                    sent.setNewParagraph(true);
+                str = str.replace(LINE_SEPARATOR," ").trim();
+                if (str.length() > 0) {
+                    sent = new SentencePOS(str, posTagger);
+                    sent.setStartPosInText(prevSentPos);
+                    sent.setId(sentences.size());
+                    if (newParagraph) {
+                        sent.setNewParagraph(true);
+                    }
+                    sentences.add(sent);
+                    prevSentPos += sent.getElemList().size();
+                } else {
+                    sentEndsWithEmptyLine = true;
                 }
-                sentences.add(sent);
                 str = sr.readSentence();
                 prevSentEndsWithEmptyLine = sentEndsWithEmptyLine;
-                prevSentPos += sent.getElemList().size();
                 //TODO: check words count in sentence.
                 // If no words, add string to the previous sentence
             }
@@ -186,13 +187,13 @@ public class Text {
                 //System.out.println(word);
                 HashSet<Word> searchRes = new HashSet<Word>();
                 switch(wordSearchMode) {
-                    case Text.FIND_WORD_AS_IS:
+                    case TextPOS.FIND_WORD_AS_IS:
                         searchRes.addAll(dict.getBaseForm(word, lang, false));
-                    case Text.FIND_WORD_IGNORE_CASE:
+                    case TextPOS.FIND_WORD_IGNORE_CASE:
                         searchRes.addAll(dict.getBaseForm(word.toLowerCase(), lang, false));
                         searchRes.addAll(dict.getBaseForm(word, lang, false));
                         break;
-                    case Text.FIND_WORD_GERMAN:
+                    case TextPOS.FIND_WORD_GERMAN:
                         searchRes.addAll(dict.getBaseForm(word, lang, false));
                         if (searchRes.size() == 0) {
                             searchRes.addAll(dict.getBaseForm(word.toLowerCase(), lang, false));
@@ -240,20 +241,20 @@ public class Text {
     public CountHashtable<String> getWordUsageStats(int wordSearchMode) {
         CountHashtable<String> ret = new CountHashtable<String>();
         String s;
-        for (Sentence sent : getSentences()) {
+        for (SentencePOS sent : getSentences()) {
             for (int i = 0; i < sent.getElemList().size(); i++) {
                 s = sent.getElemList().get(i);
                 if (s.length() > 0) {
                     switch(wordSearchMode) {
-                        case Text.FIND_WORD_AS_IS:
+                        case TextPOS.FIND_WORD_AS_IS:
                             ret.add(s);
-                        case Text.FIND_WORD_IGNORE_CASE:
+                        case TextPOS.FIND_WORD_IGNORE_CASE:
                             ret.add(s.toLowerCase());
                             if (!s.toLowerCase().equals(s)) {
                                 ret.add(s);
                             }
                             break;
-                        case Text.FIND_WORD_GERMAN:
+                        case TextPOS.FIND_WORD_GERMAN:
                             //TODO: check german word pattern (all letters lowercase (Ex. arbeiten), first letter uppercase the rest lowercase (Ex. Arbeit))
                             // words not matching german word pattern process ignoring case
                             if (i == 0) {
@@ -360,7 +361,7 @@ public class Text {
         }
 
         int sentInd = 0;
-        for(Sentence sent : sentences){
+        for(SentencePOS sent : sentences){
             if (sent.isNewParagraph()) {
                 if (sentInd>0) {
                     sbRet.append("</p><p>");
@@ -408,7 +409,7 @@ public class Text {
         sbRet.append("</head><body>");
 
         int sentInd = 0;
-        for(Sentence sent : sentences){
+        for(SentencePOS sent : sentences){
             if (sent.isNewParagraph()) {
                 if (sentInd>0) {
                     sbRet.append("</p><p>");
@@ -435,7 +436,7 @@ public class Text {
         sbRet.append("\n<body>\n<section>");
 
         int sentInd = 0;
-        for(Sentence sent : sentences){
+        for(SentencePOS sent : sentences){
             if (sent.isNewParagraph()) {
                 if (sentInd>0) {
                     sbRet.append("</p>\n<p>");
@@ -611,31 +612,44 @@ public class Text {
 
     /** Return Fb2 representation of this word.
      */
-    public String getWordFb2(String word, int wordSearchMode){
+    public String getWordFb2(String word, String posTag, int wordSearchMode){
         StringBuilder sb = new StringBuilder();
         String searchWord = word;
         Collection<Word> wordBases = null;
         switch(wordSearchMode) {
-            case Text.FIND_WORD_AS_IS:
-                wordBases = wfMap.get(word);
-                break;
-            case Text.FIND_WORD_IGNORE_CASE:
+            case TextPOS.FIND_WORD_IGNORE_CASE:
                 searchWord = word.toLowerCase();
                 wordBases = wfMap.get(searchWord);
                 break;
-            case Text.FIND_WORD_GERMAN:
+            case TextPOS.FIND_WORD_AS_IS:
+            case TextPOS.FIND_WORD_GERMAN:
+            default:
                 wordBases = wfMap.get(word);
-                //should not be used here
                 break;
         }
 
         if(wordBases == null || wordBases.isEmpty()) { //unrecognized word
-            if (wordSearchMode == Text.FIND_WORD_GERMAN) {
-                sb.append(getWordFb2(word, Text.FIND_WORD_IGNORE_CASE));
+            if (wordSearchMode == TextPOS.FIND_WORD_GERMAN) {
+                // ignore case if nothing found
+                sb.append(getWordFb2(word, "", TextPOS.FIND_WORD_IGNORE_CASE));
             } else {
                 sb.append(word);
             }
         } else { // recognized
+            if (posTag != null && posTag.length() > 0) {
+                if (lang.getLanguage().equals("en")) {
+                    String strWordTypes = EnPOSTagSet.getWordType(posTag);
+                    if (strWordTypes.length() > 0) {
+                        Integer[] wordTypes = convertStrToInt(strWordTypes);
+                        Collection<Word> filteredWordBases = filterWordBases(wordBases, wordTypes);
+                        if (filteredWordBases.size() > 0) {
+                            wordBases = filteredWordBases;
+                        } else {
+                            log.info(String.format("Ignore POSTag. There was no WordBases for word '%s', wordTypes '%s' (POSTag '%s')", word, strWordTypes, posTag));
+                        }
+                    }
+                }
+            }
             boolean bUserKnows = true;
             for (Word w : wordBases) {
                 bUserKnows &= w.isUserKnows();
@@ -668,7 +682,12 @@ public class Text {
                 }
             } else { //add all unknown words
                 boolean wordHasNote = false;
-                if (!fb2Notes.containsKey(searchWord)) { //generate note
+                String wordNoteLink = searchWord;
+                if (wordBases.size() == 1) {
+                    Word wordBase = wordBases.iterator().next();
+                    wordNoteLink += wordBase.getInf()+"_" + wordBase.getType();
+                }
+                if (!fb2Notes.containsKey(wordNoteLink)) { //generate note
                     List<String> dictArticles = new ArrayList<String>();
                     for (Word w : wordBases) {
                         if (!w.isUserKnows()) {
@@ -704,7 +723,7 @@ public class Text {
                     }
 
                     if (dictArticle.toString().trim().length() > 0) {
-                        fb2Notes.put(searchWord, dictArticle.toString());
+                        fb2Notes.put(wordNoteLink, dictArticle.toString());
                         wordHasNote = true;
                     }
                 } else {
@@ -738,19 +757,49 @@ public class Text {
                     addNoteLink = true;
                 }
                 if (wordHasNote && addNoteLink) {
-                    sb.append(" <a l:href=\"#" + (searchWord) + "\" type=\"note\">*</a>");
+                    sb.append(" <a l:href=\"#" + (wordNoteLink) + "\" type=\"note\">*</a>");
                 }
             }
         }
         return sb.toString();
     }
 
-    public TChunk wordToChunk(String word, boolean ignoreCase) {
+    /**
+     * Converts a string containing comma separated list of integers to array
+     * @param str - comma separated list of integers
+     */
+    private Integer[] convertStrToInt(String str) {
+        return Arrays.stream(str.split(","))
+                .map(Integer::valueOf)
+                .toArray(Integer[]::new);
+    }
+
+    private Collection<Word> filterWordBases(Collection<Word> words, Integer[] wordTypes) {
+        return words.stream()
+                .filter(word -> ArrayUtils.contains(wordTypes, word.getType()))
+                .collect(Collectors.toList());
+    }
+
+    public TChunk wordToChunk(String word, String posTag, boolean ignoreCase) {
         TChunk ret = new TChunk(word);
         Collection<Word> wordBases = wfMap.get(ignoreCase?word.toLowerCase():word);
         if(wordBases == null || wordBases.isEmpty()) { //unrecognized word
             ret.setClazz(TChunk.CLASS_UNREC);
         } else { // recognized
+            if (posTag != null && posTag.length() > 0) {
+                if (lang.getLanguage().equals("en")) {
+                    String strWordTypes = EnPOSTagSet.getWordType(posTag);
+                    if (strWordTypes.length() > 0) {
+                        Integer[] wordTypes = convertStrToInt(strWordTypes);
+                        Collection<Word> filteredWordBases = filterWordBases(wordBases, wordTypes);
+                        if (filteredWordBases.size() > 0) {
+                            wordBases = filteredWordBases;
+                        } else {
+                            log.info(String.format("Ignore POSTag. There was no WordBases for word '%s', wordTypes '%s' (POSTag '%s')", word, strWordTypes, posTag));
+                        }
+                    }
+                }
+            }
             boolean bUserKnows = true;
             for (Word w : wordBases) {
                 bUserKnows &= w.isUserKnows();
@@ -808,7 +857,7 @@ public class Text {
     public List<TChunk> getAsChunks(boolean ignoreCase) {
         List<TChunk> ret = new ArrayList<TChunk>();
         int sentInd = 0;
-        for(Sentence sent : sentences){
+        for(SentencePOS sent : sentences){
             if (sent.isNewParagraph()) {
                 if (sentInd>0) {
                     // TChunk paragraph "</p><p>"
@@ -828,9 +877,9 @@ public class Text {
             sentInd++;
         }
         // TChunk paragraph "</p>"
-        //TChunk chunk = new TChunk("</p>");
-        //chunk.setId(-1);
-        //ret.add(chunk);
+//        TChunk chunk = new TChunk("</p>");
+//        chunk.setId(-1);
+//        ret.add(chunk);
         return ret;
     }
 

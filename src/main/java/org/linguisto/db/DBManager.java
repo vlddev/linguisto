@@ -8,17 +8,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.sql.DataSource;
 
+import edu.stanford.nlp.tagger.maxent.MaxentTagger;
 import org.apache.commons.lang3.StringUtils;
 import org.linguisto.db.obj.ActionEntry;
 import org.linguisto.db.obj.DictStats;
@@ -30,10 +26,7 @@ import org.linguisto.db.obj.Translation;
 import org.linguisto.db.obj.User;
 import org.linguisto.db.obj.WordStats;
 import org.linguisto.db.obj.WordType;
-import org.linguisto.learn.Builder;
-import org.linguisto.learn.DictUser;
-import org.linguisto.learn.Text;
-import org.linguisto.learn.Word;
+import org.linguisto.learn.*;
 import org.linguisto.learn.db.DbDictionary;
 import org.linguisto.learn.db.StDbTranslationDictionary2;
 import org.linguisto.utils.DiffMatchPatch;
@@ -46,7 +39,7 @@ public class DBManager {
 	private DataSource ds;
 	
 	private DbDictionary dict;
-	
+
 	private int maxResultCount = 100;
 	
 	public DBManager(DataSource ds) {
@@ -55,7 +48,8 @@ public class DBManager {
 		dict = new DbDictionary();
 	    dict.addTranslationDictionary("en", new StDbTranslationDictionary2());
 	    dict.addTranslationDictionary("de", new StDbTranslationDictionary2());
-	}
+
+    }
 	
 	public Connection getConnection() throws SQLException {
 		return ds.getConnection();
@@ -802,7 +796,12 @@ public class DBManager {
 	}
 	
 	private String getSalt() {
-		return "change_this";
+	    String ret = System.getProperty("linguisto.salt");
+	    if (ret == null) {
+            log.log(Level.WARNING, "System property 'linguisto.salt' is not set. Check your configuration!");
+            ret = "change_this";
+        }
+		return ret;
 	}
 
 	public Long getUserCount() {
@@ -1574,7 +1573,7 @@ public class DBManager {
 	 * Calls ling2 library.
 	 */  
     public Text makeText(String text, Locale langFrom, Locale langTo, User user) {
-    	Text ret = null;
+        Text ret = null;
 		Connection con = null;
 		try {
 			DictUser dictUser = new DictUser();
@@ -1599,6 +1598,44 @@ public class DBManager {
 			DBUtil.closeConnection(con);
 		}
 		return ret;
+    }
+
+    /**
+     * Prepare text for the user.
+     * Calls ling2 library.
+     */
+    public TextPOS makeTextPOS(String text, Locale langFrom, Locale langTo, User user) {
+        TextPOS ret = null;
+        Connection con = null;
+        try {
+            DictUser dictUser = new DictUser();
+            if (user == null) {
+                dictUser.setId(-1);
+                dictUser.setName("dummy");
+            } else {
+                dictUser.setId(user.getId());
+                dictUser.setName(user.getName());
+                dictUser.setWordClassUids(user.getWordClassUids().get(langFrom.getLanguage()));
+            }
+            con = ds.getConnection();
+            DbDictionary makerDict = new DbDictionary(con);
+            makerDict.addTranslationDictionary("en", new StDbTranslationDictionary2(con));
+            makerDict.addTranslationDictionary("de", new StDbTranslationDictionary2(con));
+
+            // init POS-Tagger
+            Properties config = new Properties();
+            config.setProperty("tagSeparator", "#");
+            MaxentTagger posTagger = new MaxentTagger("edu/stanford/nlp/models/pos-tagger/english-left3words/english-left3words-distsim.tagger", config);
+
+            ret = BuilderPOS.makeText(text, langFrom, langTo, makerDict, dictUser, posTagger);
+        } catch (SQLException e) {
+            log.log(Level.SEVERE, e.getMessage(), e);
+        } catch (Exception e) {
+            log.log(Level.SEVERE, e.getMessage(), e);
+        } finally {
+            DBUtil.closeConnection(con);
+        }
+        return ret;
     }
 
     /* ========= Methods for TestWords ============== */

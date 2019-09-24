@@ -70,4 +70,10 @@ public class TChunk {
     public void setHints(List<String> hints) {
         this.hints = hints;
     }
+
+    public String toString() {
+        StringBuffer ret = new StringBuffer();
+        ret.append(String.format("v: '%s', id=%d\n", getValue(), getId()));
+        return ret.toString();
+    }
 }

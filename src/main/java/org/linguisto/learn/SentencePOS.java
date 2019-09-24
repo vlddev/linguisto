@@ -10,9 +10,11 @@
 
 package org.linguisto.learn;
 
+import edu.stanford.nlp.tagger.maxent.MaxentTagger;
+
 import java.util.*;
 
-public class Sentence {
+public class SentencePOS {
 
     private int startPosInText = 0;
     private int id = 0;
@@ -21,13 +23,17 @@ public class Sentence {
 	private String contentLowerCase;
 	private Locale lang;
 	private List<String> elemList = new ArrayList<String>();
+    private List<String> elemPosTags = new ArrayList<String>(); //POS-Tags of elements in elemList. If null or empty -> no tag
 	private List<String> elemListLowerCase = new ArrayList<String>();
 	private List<String> dividers = new ArrayList<String>();
-	
-	public Sentence(String text) {
-		content = text;
+	private MaxentTagger posTagger;
+
+	public SentencePOS(String text, MaxentTagger posTagger) {
+		this.content = text;
+		this.posTagger = posTagger;
 		// parse sentence
-		init();
+		//init();
+        initPOS();
 	}
 
     public int getId() {
@@ -80,7 +86,38 @@ public class Sentence {
 		contentLowerCase = content.toLowerCase();
 	}
 
-	public String getNormalized() {
+    private void initPOS() {
+        String taggedString = posTagger.tagString(content);
+
+        boolean dividerTag = false;
+        for (String str : taggedString.split(" ")) {
+            String[] wordTag = str.split("#");
+            if (wordTag.length < 2) {
+                System.out.println(String.format("Unexpected tagger output. Word-POSTag='%s' ", str));
+            }
+            String wf = wordTag[0];
+            String tag = wordTag[1];
+            if (EnPOSTagSet.getAllTags().contains(tag)) { //wordform
+                if (dividerTag) {
+                    dividerTag = false;
+                } else {
+                    dividers.add(wf.equals("'s")?"":" ");
+                }
+                elemList.add(wf);
+                elemPosTags.add(tag);
+            } else { // divider
+                dividerTag = true;
+                dividers.add(wf+" ");
+            }
+        }
+        // init elemListLoverCase
+        for (String s : elemList) {
+            elemListLowerCase.add(s.toLowerCase());
+        }
+        contentLowerCase = content.toLowerCase();
+    }
+
+    public String getNormalized() {
 		StringBuffer sb = new StringBuffer(contentLowerCase);
 
 		// remove first BOM in utf8
@@ -158,7 +195,7 @@ public class Sentence {
 
     /** Return HTML representation of this sentence.
      */
-    public String getHtml(Text parent){
+    public String getHtml(TextPOS parent){
         StringBuffer sbHtml = new StringBuffer();
 
         String sWord;
@@ -175,7 +212,7 @@ public class Sentence {
 
     /** Return HTML representation of this sentence.
      */
-    public String getLinguistoHtml(Text parent, String linkBase){
+    public String getLinguistoHtml(TextPOS parent, String linkBase){
         StringBuffer sbHtml = new StringBuffer();
 
         String sWord;
@@ -192,29 +229,31 @@ public class Sentence {
 
     /** Return fb2 representation of this sentence.
      */
-    public String getFb2(Text parent, int wordSearchMode){
+    public String getFb2(TextPOS parent, int wordSearchMode){
         StringBuffer sb = new StringBuffer();
 
         if (getContent().trim().length() < 1) {
             sb.append("<empty-line/>");
         } else {
             String sWord;
+            String posTag;
             for(int i=0; i< elemList.size(); i++){
                 sWord = elemList.get(i);
+                posTag = elemPosTags.get(i);
                 //Search word
                 sb.append(parent.escapeXml(dividers.get(i)));
                 switch(wordSearchMode) {
                     case Text.FIND_WORD_AS_IS:
                     case Text.FIND_WORD_IGNORE_CASE:
-                        sb.append(parent.getWordFb2(sWord, wordSearchMode));
+                        sb.append(parent.getWordFb2(sWord, posTag, wordSearchMode));
                         break;
                     case Text.FIND_WORD_GERMAN:
                         if (i==0) {
                             //TODO: check german word pattern (all letters lowercase (Ex. arbeiten), first letter uppercase the rest lowercase (Ex. Arbeit))
                             // words not matching german word pattern process ignoring case
-                            sb.append(parent.getWordFb2(sWord, Text.FIND_WORD_GERMAN));
+                            sb.append(parent.getWordFb2(sWord, posTag, Text.FIND_WORD_GERMAN));
                         } else {
-                            sb.append(parent.getWordFb2(sWord, Text.FIND_WORD_AS_IS));
+                            sb.append(parent.getWordFb2(sWord, posTag, Text.FIND_WORD_AS_IS));
                         }
                         break;
                 }
@@ -225,7 +264,7 @@ public class Sentence {
         return sb.toString();
     }
 
-    public List<TChunk> getAsChunks(Text parent, boolean ignoreCase) {
+    public List<TChunk> getAsChunks(TextPOS parent, boolean ignoreCase) {
         List<TChunk> ret = new ArrayList<TChunk>();
         TChunk chunk;
         int chunkId = 0;
@@ -233,7 +272,7 @@ public class Sentence {
             chunk = new TChunk(dividers.get(i));
             chunk.setId(chunkId++);
             ret.add(chunk);
-            chunk = parent.wordToChunk(elemList.get(i), ignoreCase);
+            chunk = parent.wordToChunk(elemList.get(i), elemPosTags.get(i), ignoreCase);
             chunk.setId(chunkId++);
             ret.add(chunk);
         }

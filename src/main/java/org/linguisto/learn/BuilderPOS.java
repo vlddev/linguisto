@@ -10,22 +10,21 @@
 
 package org.linguisto.learn;
 
-import java.sql.Connection;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.logging.Logger;
-
+import edu.stanford.nlp.tagger.maxent.MaxentTagger;
 import org.linguisto.learn.db.DAO;
 import org.linguisto.learn.db.DbDictionary;
 import org.linguisto.learn.db.Dictionary;
 import org.linguisto.learn.db.StDbTranslationDictionary2;
 import org.linguisto.utils.IOUtil;
 
-public class Builder {
+import java.sql.Connection;
+import java.util.*;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
-    public static final Logger log = Logger.getLogger(Builder.class.getName());
+public class BuilderPOS {
+
+    public static final Logger log = Logger.getLogger(BuilderPOS.class.getName());
 
     /**
 	 * @param args
@@ -55,7 +54,12 @@ public class Builder {
 
             Connection c = DAO.getConnection(dbUser, dbPwd, dbUrlTr, dbJdbcDriver);
 
-            makeTextUsingFiles(sFile, new Locale(lang1), new Locale(lang2), c);
+            Properties config = new Properties();
+            config.setProperty("tagSeparator", "#");
+            //MaxentTagger posTagger = new MaxentTagger("/home/vlad/Dokumente/my_dev/pos-tagging/stanford-postagger/models/english-left3words-distsim.tagger", config);
+            MaxentTagger posTagger = new MaxentTagger("edu/stanford/nlp/models/pos-tagger/english-left3words/english-left3words-distsim.tagger", config);
+
+            makeTextUsingFiles(sFile, new Locale(lang1), new Locale(lang2), c, posTagger);
 
             DAO.closeConnection(c);
 		} else {
@@ -63,7 +67,7 @@ public class Builder {
 		}
 	}
 
-    public static void makeTextUsingFiles(String sFile, Locale locFrom, Locale locTo, Connection c) throws Exception {
+    public static void makeTextUsingFiles(String sFile, Locale locFrom, Locale locTo, Connection c, MaxentTagger posTagger) throws Exception {
         //read text
         String text = IOUtil.getFileContent(sFile, "utf-8");
         DbDictionary dict = new DbDictionary(c);
@@ -71,10 +75,14 @@ public class Builder {
         dict.addTranslationDictionary("de", new StDbTranslationDictionary2(c));
         DictUser user = new DictUser();
         user.setId(4);
-        Text textObj = makeText(text, locFrom, locTo, dict, user);
+        TextPOS textObj = makeText(text, locFrom, locTo, dict, user, posTagger);
 
         //store fb2
         IOUtil.storeString(sFile+".fb2", "utf-8", textObj.getFb2(Text.FIND_WORD_GERMAN));
+        //store chunks
+        List<TChunk> chList = textObj.getAsChunks(false);
+        IOUtil.storeString(sFile+".chunks.txt", "utf-8", chList.stream().map(tChunk -> tChunk.toString()).collect(Collectors.joining()));
+
         //store unrecognized
         IOUtil.storeString(sFile+".unrec.txt", "utf-8", textObj.getUnrecognizedWordUsageStats());
         //store untranslated
@@ -83,11 +91,11 @@ public class Builder {
         IOUtil.storeString(sFile+".unknown.txt", "utf-8", textObj.getUnknownWords());
     }
 
-    public static String makeTextAsHtml(String strText, Locale locFrom, Locale locTo, Dictionary dict, DictUser user, boolean completeHtmlPage) throws Exception {
+    public static String makeTextAsHtml(String strText, Locale locFrom, Locale locTo, Dictionary dict, DictUser user, MaxentTagger posTagger, boolean completeHtmlPage) throws Exception {
         String ret = null;
 
         //read text in first language
-        Text text = makeText(strText, locFrom, locTo, dict, user);
+        TextPOS text = makeText(strText, locFrom, locTo, dict, user, posTagger);
 
         //store HTML
         ret = text.getHtml(completeHtmlPage);
@@ -95,11 +103,20 @@ public class Builder {
         return ret;
     }
 
-    public static String makeTextAsFb2(String strText, Locale locFrom, Locale locTo, Dictionary dict, DictUser user) throws Exception {
+    public static String makeTextAsChunks(String strText, Locale locFrom, Locale locTo, Dictionary dict, DictUser user, MaxentTagger posTagger, boolean completeHtmlPage) throws Exception {
+        //read text in first language (locFrom)
+        TextPOS text = makeText(strText, locFrom, locTo, dict, user, posTagger);
+
+        List<TChunk> chList = text.getAsChunks(false);
+
+        return chList.stream().map(tChunk -> tChunk.toString()).collect(Collectors.joining());
+    }
+
+    public static String makeTextAsFb2(String strText, Locale locFrom, Locale locTo, Dictionary dict, DictUser user, MaxentTagger posTagger) throws Exception {
         String ret = null;
 
         //read text in first language
-        Text text = makeText(strText, locFrom, locTo, dict, user);
+        TextPOS text = makeText(strText, locFrom, locTo, dict, user, posTagger);
 
         //store HTML
         ret = text.getFb2(Text.FIND_WORD_GERMAN);
@@ -107,8 +124,8 @@ public class Builder {
         return ret;
     }
 
-    public static Text makeText(String strText, Locale locFrom, Locale locTo, Dictionary dict, DictUser user) throws Exception {
-        Text ret = null;
+    public static TextPOS makeText(String strText, Locale locFrom, Locale locTo, Dictionary dict, DictUser user, MaxentTagger posTagger) throws Exception {
+        TextPOS ret = null;
         Date start = new Date();
 
         List<String> errorList = dict.checkDB(locFrom, locTo);
@@ -121,7 +138,7 @@ public class Builder {
         }
 
         //read text in first language
-        ret = new Text(strText, locFrom, dict);
+        ret = new TextPOS(strText, locFrom, dict, posTagger);
         int textProcessingType = Text.FIND_WORD_IGNORE_CASE;
         if ("de".equals(locFrom.getLanguage())) {
             log.info("German text processing");
