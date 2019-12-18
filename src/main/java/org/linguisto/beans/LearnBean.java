@@ -141,12 +141,12 @@ public class LearnBean extends AbstractDbBean {
 	}
 	
 	/**
-	 * Find next 20 words unknown for current user
+	 * Find next 50 words unknown for current user
 	 * based on frequency
 	 */
 	public void findProposedWords() {
 		try {
-			words = getDBManager().getUserProposedWords(new Locale(langFrom), login.getUser(), 20);
+			words = getDBManager().getUserProposedWords(new Locale(langFrom), login.getUser(), 50);
 		} catch (SQLException e) {
 			log.log(Level.SEVERE, e.getMessage(), e);
 		}

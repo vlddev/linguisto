@@ -1622,12 +1622,24 @@ public class DBManager {
             makerDict.addTranslationDictionary("en", new StDbTranslationDictionary2(con));
             makerDict.addTranslationDictionary("de", new StDbTranslationDictionary2(con));
 
-            // init POS-Tagger
-            Properties config = new Properties();
-            config.setProperty("tagSeparator", "#");
-            MaxentTagger posTagger = new MaxentTagger("edu/stanford/nlp/models/pos-tagger/english-left3words/english-left3words-distsim.tagger", config);
+            if ("en".equals(langFrom.getLanguage())) {
+                // init POS-Tagger
+                Properties config = new Properties();
+                config.setProperty("tagSeparator", BuilderPOS.TagSeparator);
+                config.setProperty("tokenizerOptions", "asciiQuotes");
+                MaxentTagger posTagger = new MaxentTagger("edu/stanford/nlp/models/pos-tagger/english-left3words/english-left3words-distsim.tagger", config);
 
-            ret = BuilderPOS.makeText(text, langFrom, langTo, makerDict, dictUser, posTagger);
+                ret = BuilderPOS.makeText(text, langFrom, langTo, makerDict, dictUser, posTagger);
+            } else if ("de".equals(langFrom.getLanguage())) {
+                // init POS-Tagger
+                // TODO: use german tagger
+                Properties config = new Properties();
+                config.setProperty("tagSeparator", BuilderPOS.TagSeparator);
+                config.setProperty("tokenizerOptions", "asciiQuotes");
+                MaxentTagger posTagger = new MaxentTagger("edu/stanford/nlp/models/pos-tagger/english-left3words/english-left3words-distsim.tagger", config);
+
+                ret = BuilderPOS.makeText(text, langFrom, langTo, makerDict, dictUser, posTagger);
+            }
         } catch (SQLException e) {
             log.log(Level.SEVERE, e.getMessage(), e);
         } catch (Exception e) {

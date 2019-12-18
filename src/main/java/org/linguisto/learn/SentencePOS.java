@@ -13,8 +13,13 @@ package org.linguisto.learn;
 import edu.stanford.nlp.tagger.maxent.MaxentTagger;
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class SentencePOS {
+
+    public static final Logger log = Logger.getLogger(SentencePOS.class.getName());
 
     private int startPosInText = 0;
     private int id = 0;
@@ -22,18 +27,14 @@ public class SentencePOS {
 	private String content;
 	private String contentLowerCase;
 	private Locale lang;
-	private List<String> elemList = new ArrayList<String>();
-    private List<String> elemPosTags = new ArrayList<String>(); //POS-Tags of elements in elemList. If null or empty -> no tag
-	private List<String> elemListLowerCase = new ArrayList<String>();
-	private List<String> dividers = new ArrayList<String>();
+	private List<SentElem> elemList = new ArrayList<>();
 	private MaxentTagger posTagger;
 
 	public SentencePOS(String text, MaxentTagger posTagger) {
 		this.content = text;
 		this.posTagger = posTagger;
 		// parse sentence
-		//init();
-        initPOS();
+        init();
 	}
 
     public int getId() {
@@ -45,80 +46,34 @@ public class SentencePOS {
     }
 
     private void init() {
-		StringTokenizer fIn = new StringTokenizer(content, Text.DIVIDER_CHARS, true); //return delimiters is on
-		if(fIn.hasMoreTokens()) {
-            String strWord = "";
-            String strDivider = "";
-            String token;
-			do {
-                token = fIn.nextToken();
-                if (token.length() == 1 && Text.DIVIDER_CHARS.contains(token)) { //divider
-                    strDivider += token;
-                } else { //word
-                    strWord = token;
-                    while (strWord.startsWith("-"))  {
-                        strWord = strWord.substring(1);
-                        //add "-" to the last divider
-                        strDivider += "-";
-                    }
-                    String nextDivider = "";
-                    while (strWord.endsWith("-"))  {
-                        strWord = strWord.substring(0, strWord.length()-1);
-                        nextDivider += "-";
-                    }
-                    if (strWord.length() > 0) {
-                        //if (elemList.size() != 0) { //ignore divider before first word in sentence
-                        dividers.add(strDivider);
-                        //}
-                        strDivider = nextDivider; //reset
-
-                        elemList.add(strWord);
-                    }
-
-                }
-			} while(fIn.hasMoreTokens());
-            dividers.add(strDivider); //last divider
-		}
-		// init elemListLoverCase
-		for (String s : elemList) {
-			elemListLowerCase.add(s.toLowerCase());
-		}
-		contentLowerCase = content.toLowerCase();
-	}
-
-    private void initPOS() {
         String taggedString = posTagger.tagString(content);
+        log.log(Level.FINE, taggedString);
 
-        boolean dividerTag = false;
+        SentElem prevElem = null;
         for (String str : taggedString.split(" ")) {
-            String[] wordTag = str.split("#");
+            String[] wordTag = str.split(BuilderPOS.TagSeparator);
             if (wordTag.length < 2) {
                 System.out.println(String.format("Unexpected tagger output. Word-POSTag='%s' ", str));
             }
             String wf = wordTag[0];
             String tag = wordTag[1];
             if (EnPOSTagSet.getAllTags().contains(tag)) { //wordform
-                if (dividerTag) {
-                    dividerTag = false;
-                } else {
-                    dividers.add(wf.equals("'s")?"":" ");
+                if (prevElem != null && prevElem.getType() == SentElem.TYPE_WORD) {
+                    elemList.add(new SentElem(wf.equals("'s")?"":" ", "", SentElem.TYPE_DIVIDER));
                 }
-                elemList.add(wf);
-                elemPosTags.add(tag);
+                SentElem curElem = new SentElem(wf, tag);
+                elemList.add(curElem);
+                prevElem = curElem;
             } else { // divider
-                dividerTag = true;
-                dividers.add(wf+" ");
+                prevElem = new SentElem(wf+" ", "", SentElem.TYPE_DIVIDER);
+                elemList.add(prevElem);
             }
-        }
-        // init elemListLoverCase
-        for (String s : elemList) {
-            elemListLowerCase.add(s.toLowerCase());
         }
         contentLowerCase = content.toLowerCase();
     }
 
     public String getNormalized() {
-		StringBuffer sb = new StringBuffer(contentLowerCase);
+		StringBuilder sb = new StringBuilder(contentLowerCase);
 
 		// remove first BOM in utf8
 		if (sb.length() > 0) {
@@ -141,7 +96,7 @@ public class SentencePOS {
 		String sChar;
 		while(sb.length() > 0) {
 			sChar = sb.substring(0, 1);
-			if (Text.DIVIDER_CHARS.indexOf(sChar) > -1 ) {
+			if (Text.DIVIDER_CHARS.contains(sChar)) {
 				sb.deleteCharAt(0);
 			} else {
 				break;
@@ -149,7 +104,7 @@ public class SentencePOS {
 		}
 		while(sb.length() > 0) {
 			sChar = sb.substring(sb.length()-1);
-			if (Text.DIVIDER_CHARS.indexOf(sChar) > -1 ) {
+			if (Text.DIVIDER_CHARS.contains(sChar)) {
 				sb.deleteCharAt(sb.length()-1);
 			} else {
 				break;
@@ -158,37 +113,6 @@ public class SentencePOS {
 		return sb.toString();
 	}
 	
-	public boolean containsWordform(String wf, boolean ignoreCase) {
-		boolean ret = false;
-		if (ignoreCase) {
-			String wfLoverCase = wf.toLowerCase();
-			if (contentLowerCase.indexOf(wfLoverCase) > -1) {
-				ret = elemListLowerCase.contains(wfLoverCase);
-			}
-		} else {
-			if (content.indexOf(wf) > -1) {
-				ret = elemList.contains(wf);
-			}
-		}
-		return ret;
-	}
-
-	public int getWordformIndex(String wf, boolean ignoreCase) {
-		int ret = -1;
-		if (ignoreCase) {
-			String wfLoverCase = wf.toLowerCase();
-			if (contentLowerCase.indexOf(wfLoverCase) > -1) {
-				ret = elemListLowerCase.indexOf(wfLoverCase);
-			}
-		} else {
-			if (content.indexOf(wf) > -1) {
-				ret = elemList.indexOf(wf);
-			}
-		}
-		ret = ret > -1 ? ret+startPosInText : ret;
-		return ret;
-	}
-
 	public String getContent() {
 		return content;
 	}
@@ -196,16 +120,17 @@ public class SentencePOS {
     /** Return HTML representation of this sentence.
      */
     public String getHtml(TextPOS parent){
-        StringBuffer sbHtml = new StringBuffer();
+        StringBuilder sbHtml = new StringBuilder();
 
-        String sWord;
+        SentElem elem;
         for(int i=0; i< elemList.size(); i++){
-            sWord = elemList.get(i);
-            //Search word
-            sbHtml.append(dividers.get(i));
-            sbHtml.append(parent.getWordHtml(sWord));
+            elem = elemList.get(i);
+            if (elem.getType() == SentElem.TYPE_DIVIDER) {
+                sbHtml.append(parent.escapeXml(elem.getValue()));
+            } else if (elem.getType() == SentElem.TYPE_WORD) {
+                sbHtml.append(parent.getWordHtml(elem.getValue()));
+            }
         }
-        sbHtml.append(dividers.get(dividers.size()-1)); //last divider
 
         return sbHtml.toString();
     }
@@ -213,16 +138,17 @@ public class SentencePOS {
     /** Return HTML representation of this sentence.
      */
     public String getLinguistoHtml(TextPOS parent, String linkBase){
-        StringBuffer sbHtml = new StringBuffer();
+        StringBuilder sbHtml = new StringBuilder();
 
-        String sWord;
+        SentElem elem;
         for(int i=0; i< elemList.size(); i++){
-            sWord = elemList.get(i);
-            //Search word
-            sbHtml.append(dividers.get(i));
-            sbHtml.append(parent.getWordLinguistoHtml(sWord, linkBase));
+            elem = elemList.get(i);
+            if (elem.getType() == SentElem.TYPE_DIVIDER) {
+                sbHtml.append(parent.escapeXml(elem.getValue()));
+            } else if (elem.getType() == SentElem.TYPE_WORD) {
+                sbHtml.append(parent.getWordLinguistoHtml(elem.getValue(), linkBase));
+            }
         }
-        sbHtml.append(dividers.get(dividers.size()-1)); //last divider
 
         return sbHtml.toString();
     }
@@ -230,68 +156,61 @@ public class SentencePOS {
     /** Return fb2 representation of this sentence.
      */
     public String getFb2(TextPOS parent, int wordSearchMode){
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
 
         if (getContent().trim().length() < 1) {
             sb.append("<empty-line/>");
         } else {
-            String sWord;
-            String posTag;
-            for(int i=0; i< elemList.size(); i++){
-                sWord = elemList.get(i);
-                posTag = elemPosTags.get(i);
-                //Search word
-                sb.append(parent.escapeXml(dividers.get(i)));
-                switch(wordSearchMode) {
-                    case Text.FIND_WORD_AS_IS:
-                    case Text.FIND_WORD_IGNORE_CASE:
-                        sb.append(parent.getWordFb2(sWord, posTag, wordSearchMode));
-                        break;
-                    case Text.FIND_WORD_GERMAN:
-                        if (i==0) {
-                            //TODO: check german word pattern (all letters lowercase (Ex. arbeiten), first letter uppercase the rest lowercase (Ex. Arbeit))
-                            // words not matching german word pattern process ignoring case
-                            sb.append(parent.getWordFb2(sWord, posTag, Text.FIND_WORD_GERMAN));
-                        } else {
-                            sb.append(parent.getWordFb2(sWord, posTag, Text.FIND_WORD_AS_IS));
-                        }
-                        break;
+            SentElem elem;
+            for(int i=0; i < elemList.size(); i++){
+                elem = elemList.get(i);
+                if (elem.getType() == SentElem.TYPE_DIVIDER) {
+                    sb.append(parent.escapeXml(elem.getValue()));
+                } else if (elem.getType() == SentElem.TYPE_WORD) {
+                    //Search word
+                    switch(wordSearchMode) {
+                        case Text.FIND_WORD_AS_IS:
+                        case Text.FIND_WORD_IGNORE_CASE:
+                            sb.append(parent.getWordFb2(elem.getValue(), elem.getTag(), wordSearchMode));
+                            break;
+                        case Text.FIND_WORD_GERMAN:
+                            if (i==0) {
+                                //TODO: check german word pattern (all letters lowercase (Ex. arbeiten), first letter uppercase the rest lowercase (Ex. Arbeit))
+                                // words not matching german word pattern process ignoring case
+                                sb.append(parent.getWordFb2(elem.getValue(), elem.getTag(), Text.FIND_WORD_GERMAN));
+                            } else {
+                                sb.append(parent.getWordFb2(elem.getValue(), elem.getTag(), Text.FIND_WORD_AS_IS));
+                            }
+                            break;
+                    }
                 }
             }
-            sb.append(parent.escapeXml(dividers.get(dividers.size()-1))); //last divider
         }
 
         return sb.toString();
     }
 
     public List<TChunk> getAsChunks(TextPOS parent, boolean ignoreCase) {
-        List<TChunk> ret = new ArrayList<TChunk>();
+        List<TChunk> ret = new ArrayList<>();
+
+        SentElem elem;
         TChunk chunk;
         int chunkId = 0;
         for(int i=0; i< elemList.size(); i++){
-            chunk = new TChunk(dividers.get(i));
-            chunk.setId(chunkId++);
-            ret.add(chunk);
-            chunk = parent.wordToChunk(elemList.get(i), elemPosTags.get(i), ignoreCase);
-            chunk.setId(chunkId++);
-            ret.add(chunk);
+            elem = elemList.get(i);
+            if (elem.getType() == SentElem.TYPE_DIVIDER) {
+                chunk = new TChunk(elem.getValue());
+                chunk.setId(chunkId++);
+                ret.add(chunk);
+            } else if (elem.getType() == SentElem.TYPE_WORD) {
+                chunk = parent.wordToChunk(elem.getValue(), elem.getTag(), ignoreCase);
+                chunk.setId(chunkId++);
+                ret.add(chunk);
+            }
         }
-        chunk = new TChunk(dividers.get(dividers.size()-1));
-        chunk.setId(chunkId++);
-        ret.add(chunk); //last divider
         return ret;
     }
 
-
-    public List<String> getAll() {
-        List<String> ret = new ArrayList<String>();
-        for(int i=0; i< elemList.size(); i++){
-            ret.add(dividers.get(i));
-            ret.add(elemList.get(i));
-        }
-        ret.add(dividers.get(dividers.size() - 1)); //last divider
-        return ret;
-    }
 
 	public int getStartPosInText() {
 		return startPosInText;
@@ -302,7 +221,9 @@ public class SentencePOS {
 	}
 
 	public List<String> getElemList() {
-		return elemList;
+        return elemList.stream().filter(sentElem -> sentElem.getType() == SentElem.TYPE_WORD)
+                .map(sentElem -> sentElem.getValue())
+                .collect(Collectors.toList());
 	}
 
     public boolean isNewParagraph() {

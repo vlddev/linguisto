@@ -67,31 +67,31 @@ public class TextPOS {
     CountHashtable<String> distWords;
 
     //unrecognized words
-    HashSet<String> unrecognizedWords = new HashSet<String>();
+    HashSet<String> unrecognizedWords = new HashSet<>();
 
     // words without translation
-    HashMap<Long, Word> notTranslated = new HashMap<Long, Word>();
+    HashMap<Long, Word> notTranslated = new HashMap<>();
 
     //mapping of word-forms to word-bases
-    HashMap<String, Collection<Word>> wfMap = new HashMap<String, Collection<Word>>();
+    HashMap<String, Collection<Word>> wfMap = new HashMap<>();
 
     //dictionary for this text
-    HashMap<Word, List<String>> textDict = new HashMap<Word, List<String>>();
+    HashMap<Word, List<String>> textDict = new HashMap<>();
 
     //fb2 notes for this text
-    HashMap<String, String> fb2Notes = new HashMap<String, String>();
+    HashMap<String, String> fb2Notes = new HashMap<>();
 
     int noteCounter = 1;
 
     /** Constructor for texts
      */
-    public TextPOS(String content, Locale lang, Dictionary d, MaxentTagger posTagger) throws IOException{
+    public TextPOS(String content, Locale lang, Dictionary d, MaxentTagger posTagger) {
     	this(content, lang, "utf-8", d, posTagger);
     }
 
     /** Constructor for texts
      */
-    public TextPOS(String content, Locale lang, String encoding, Dictionary d, MaxentTagger posTagger) throws IOException{
+    public TextPOS(String content, Locale lang, String encoding, Dictionary d, MaxentTagger posTagger) {
     	if(d==null){
 	        throw new NullPointerException("Dictionary is null");
     	}
@@ -114,7 +114,7 @@ public class TextPOS {
 
     /**
      */
-    private void init() throws IOException {
+    private void init() {
         long start = System.currentTimeMillis();
         // remove first BOM in utf8
         if (content.length() > 0) {
@@ -125,12 +125,9 @@ public class TextPOS {
             }
         }
 
-        sentences = new ArrayList<SentencePOS>();
+        sentences = new ArrayList<>();
 
-        //1. replace "..." with "…"
-        content = content.replace("...","…");
-        //2. replace "’" with "'"
-        content = content.replace("’","'");
+        content = preprocess(content);
 
         SentenceReader2 sr = new SentenceReader2(content);
         try {
@@ -162,12 +159,106 @@ public class TextPOS {
                 // If no words, add string to the previous sentence
             }
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.log(Level.SEVERE, "Error: "+e.getMessage(), e);
         }
         log.info("Text.init() took "+(System.currentTimeMillis() - start)+" ms.");
     }
-    
+
+    private String preprocess(String content) {
+        String text = content;
+
+        //1. replace "..." with "…"
+        text = text.replace("...","…");
+        //2. replace "’" with "'"
+        text = text.replace("’","'");
+
+        //preprocess text
+        text = text.replace("—", " — ").trim();
+        text = text.replace("n't", " not");
+        /*
+        text = text.replace("Aren't", "Are not");
+        text = text.replace("can't", "can not");
+        text = text.replace("Can't", "Can not");
+        text = text.replace("couldn't", "could not");
+        text = text.replace("Couldn't", "Could not");
+        text = text.replace("don't", "do not");
+        text = text.replace("Don't", "Do not");
+        text = text.replace("doesn't", "does not");
+        text = text.replace("Doesn't", "Does not");
+        text = text.replace("didn't", "did not");
+        text = text.replace("Didn't", "Did not");
+        text = text.replace("haven't", "have not");
+        text = text.replace("Haven't", "Have not");
+        text = text.replace("hadn't", "had not");
+        text = text.replace("Hadn't", "Had not");
+        text = text.replace("isn't", "is not");
+        text = text.replace("Isn't", "Is not");
+        text = text.replace("shouldn't", "should not");
+        text = text.replace("Shouldn't", "Should not");
+        text = text.replace("wasn't", "was not");
+        text = text.replace("Wasn't", "Was not");
+        text = text.replace("weren't", "were not");
+        text = text.replace("Weren't", "Were not");
+        text = text.replace("won't", "will not");
+        text = text.replace("Won't", "Will not");
+        text = text.replace("wouldn't", "would not");
+        text = text.replace("Wouldn't", "Would not");
+         */
+        text = text.replace("'ll", " will");
+        /*
+        text = text.replace("He'll", "He will");
+        text = text.replace("i'll", "i will");
+        text = text.replace("I'll", "I will");
+        text = text.replace("it'll", "it will");
+        text = text.replace("It'll", "It will");
+        text = text.replace("that'll", "that will");
+        text = text.replace("That'll", "That will");
+        text = text.replace("there'll", "there will");
+        text = text.replace("There'll", "There will");
+        text = text.replace("they'll", "they will");
+        text = text.replace("They'll", "They will");
+        text = text.replace("we'll", "we will");
+        text = text.replace("We'll", "We will");
+        text = text.replace("what'll", "what will");
+        text = text.replace("What'll", "What will");
+        text = text.replace("you'll", "you will");
+        text = text.replace("You'll", "You will");
+         */
+        text = text.replace("he's", "he is");
+        text = text.replace("He's", "He is");
+        text = text.replace("here's", "here is");
+        text = text.replace("Here's", "Here is");
+        text = text.replace("i'm", "i am");
+        text = text.replace("I'm", "I am");
+        text = text.replace("it's", "it is");
+        text = text.replace("It's", "It is");
+        text = text.replace("i've", "i have");
+        text = text.replace("I've", "I have");
+        text = text.replace("let's", "let us");
+        text = text.replace("Let's", "Let us");
+        text = text.replace("that's", "that is");
+        text = text.replace("That's", "That is");
+        text = text.replace("there's", "there is");
+        text = text.replace("There's", "There is");
+        text = text.replace("they're", "they are");
+        text = text.replace("They're", "They are");
+        text = text.replace("we're", "we are");
+        text = text.replace("We're", "We are");
+        text = text.replace("we've", "we have");
+        text = text.replace("We've", "We have");
+        text = text.replace("what's", "what is");
+        text = text.replace("What's", "What is");
+        text = text.replace("you're", "you are");
+        text = text.replace("You're", "You are");
+        text = text.replace("you've", "you have");
+        text = text.replace("You've", "You have");
+
+        text = text.trim().replaceAll(" +", " ");
+
+        return text;
+    }
+
+
     /**
      * prepare dictionary for this text
      */
@@ -185,13 +276,14 @@ public class TextPOS {
         for(String word : distWords.keySet()) {
             try {
                 //System.out.println(word);
-                HashSet<Word> searchRes = new HashSet<Word>();
+                HashSet<Word> searchRes = new HashSet<>();
                 switch(wordSearchMode) {
                     case TextPOS.FIND_WORD_AS_IS:
                         searchRes.addAll(dict.getBaseForm(word, lang, false));
+                        break;
                     case TextPOS.FIND_WORD_IGNORE_CASE:
-                        searchRes.addAll(dict.getBaseForm(word.toLowerCase(), lang, false));
-                        searchRes.addAll(dict.getBaseForm(word, lang, false));
+                        //searchRes.addAll(dict.getBaseForm(word.toLowerCase(), lang, false));
+                        searchRes.addAll(dict.getBaseForm(word, lang, true));
                         break;
                     case TextPOS.FIND_WORD_GERMAN:
                         searchRes.addAll(dict.getBaseForm(word, lang, false));
@@ -203,7 +295,7 @@ public class TextPOS {
                 if (user != null) {
                     dict.checkUserKnow(searchRes, user, lang.getLanguage()+"_");
                 }
-                if(searchRes != null && searchRes.size() > 0) {
+                if( searchRes.size() > 0) {
                     wfMap.put(word, searchRes);
                     for(Word w : searchRes) {
                         List<String> translations = dict.getTranslation(w, lang, targetLang);
@@ -223,7 +315,7 @@ public class TextPOS {
     }
 
     public CountHashtable<String> getWordUsageStats(boolean bIgnoreCase) {
-        CountHashtable<String> ret = new CountHashtable<String>();
+        CountHashtable<String> ret = new CountHashtable<>();
         StringTokenizer st = new StringTokenizer(content, DIVIDER_CHARS);
         String s;
         while (st.hasMoreTokens()) {
@@ -239,7 +331,7 @@ public class TextPOS {
     }
 
     public CountHashtable<String> getWordUsageStats(int wordSearchMode) {
-        CountHashtable<String> ret = new CountHashtable<String>();
+        CountHashtable<String> ret = new CountHashtable<>();
         String s;
         for (SentencePOS sent : getSentences()) {
             for (int i = 0; i < sent.getElemList().size(); i++) {
@@ -275,18 +367,18 @@ public class TextPOS {
 
 	public String getUnrecognizedWordUsageStats() {
         StringBuilder ret = new StringBuilder();
-        List<Pair<String, Integer>> lstOut = new ArrayList<Pair<String, Integer>>();
+        List<Pair<String, Integer>> lstOut = new ArrayList<>();
         for (String word : unrecognizedWords) {
-        	lstOut.add(new ImmutablePair<String, Integer>(word, distWords.get(word)));
+        	lstOut.add(new ImmutablePair<>(word, distWords.get(word)));
         }
-        Collections.sort(lstOut, new Comparator<Pair<String, Integer>>() {
+        lstOut.sort(new Comparator<Pair<String, Integer>>() {
             @Override
             public int compare(final Pair<String, Integer> o1, final Pair<String, Integer> o2) {
                 int ret = (o1.getValue().compareTo(o2.getValue()));
                 if (ret == 0) {
-                	ret = (o1.getKey().compareTo(o2.getKey()));
+                    ret = (o1.getKey().compareTo(o2.getKey()));
                 }
-                return ret*-1;
+                return ret * -1;
             }
         });
         for (Pair<String, Integer> pair : lstOut) {
@@ -297,7 +389,7 @@ public class TextPOS {
 
     public String getUntranslatedWords() {
         StringBuilder ret = new StringBuilder();
-        List<String> lstOut = new ArrayList<String>();
+        List<String> lstOut = new ArrayList<>();
         for (Word w : notTranslated.values()) {
         	lstOut.add(w.getInf()+"\t"+w.getType());
         }
@@ -311,7 +403,7 @@ public class TextPOS {
     public String getUnknownWords() {
         StringBuilder ret = new StringBuilder();
 
-        List<String> unknownWords = new ArrayList<String>();
+        List<String> unknownWords = new ArrayList<>();
         for (Word w : textDict.keySet()) {
             if (!w.isUserKnows() && !unknownWords.contains(w.getInf()))
                 unknownWords.add(w.getInf());
@@ -321,8 +413,28 @@ public class TextPOS {
         for (String word : unknownWords) {
             ret.append(word).append("\n");
         }
-
         return ret.toString();
+    }
+
+    public String getUnknownWordsOrderByRank() {
+        List<Word> unknownWords = new ArrayList<>();
+        for (Word w : textDict.keySet()) {
+            if (!w.isUserKnows() && !unknownWords.contains(w))
+                unknownWords.add(w);
+        }
+        //Collections.sort(unknownWords);
+        unknownWords.sort(new Comparator<Word>() {
+            @Override
+            public int compare(final Word o1, final Word o2) {
+                return Integer.compare(o1.getRank(), o2.getRank());
+            }
+        });
+
+        //for (Word w : unknownWords) {
+        //    ret.append(w.getInf()+" r:"+w.getRank()).append("\n");
+        //}
+
+        return unknownWords.stream().map(word -> word.getInf()).distinct().collect(Collectors.joining("\n"));
     }
 
 
@@ -430,10 +542,10 @@ public class TextPOS {
     public String getFb2(int wordSearchMode) {
         StringBuilder sbRet = new StringBuilder();
         //header of fb2 file
-        sbRet.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-        sbRet.append("<FictionBook xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">");
-        sbRet.append("\n<description><title-info><lang>"+lang.getLanguage()+"</lang></title-info></description>");
-        sbRet.append("\n<body>\n<section>");
+        sbRet.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>")
+        .append("<FictionBook xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\" xmlns:l=\"http://www.w3.org/1999/xlink\">")
+        .append("\n<description><title-info><lang>").append(lang.getLanguage()).append("</lang></title-info></description>")
+        .append("\n<body>\n<section>");
 
         int sentInd = 0;
         for(SentencePOS sent : sentences){
@@ -454,7 +566,7 @@ public class TextPOS {
         sbRet.append("<title><p>Notes</p></title>");
 
         //sort dict alphabetically
-        List<String> dictNotes = new ArrayList<String>(fb2Notes.keySet());
+        List<String> dictNotes = new ArrayList<>(fb2Notes.keySet());
         Collections.sort(dictNotes);
 
         for (String key : dictNotes) {
@@ -505,7 +617,7 @@ public class TextPOS {
                 }
             }else { //add all unknown words
                 StringBuilder dictArticle = new StringBuilder();
-                List<String> dictArticles = new ArrayList<String>();
+                List<String> dictArticles = new ArrayList<>();
                 for (Word w : wordBases) {
                     if (!w.isUserKnows()) {
                         for (String s : getDictionary().getTranslation(w, lang, targetLang)) {
@@ -613,8 +725,12 @@ public class TextPOS {
     /** Return Fb2 representation of this word.
      */
     public String getWordFb2(String word, String posTag, int wordSearchMode){
+        if (posTag.startsWith("NNP")) {
+            wordSearchMode = TextPOS.FIND_WORD_AS_IS;
+        }
         StringBuilder sb = new StringBuilder();
         String searchWord = word;
+        String displayWord = escapeXml(word);
         Collection<Word> wordBases = null;
         switch(wordSearchMode) {
             case TextPOS.FIND_WORD_IGNORE_CASE:
@@ -624,7 +740,7 @@ public class TextPOS {
             case TextPOS.FIND_WORD_AS_IS:
             case TextPOS.FIND_WORD_GERMAN:
             default:
-                wordBases = wfMap.get(word);
+                wordBases = wfMap.get(searchWord);
                 break;
         }
 
@@ -633,7 +749,7 @@ public class TextPOS {
                 // ignore case if nothing found
                 sb.append(getWordFb2(word, "", TextPOS.FIND_WORD_IGNORE_CASE));
             } else {
-                sb.append(word);
+                sb.append(displayWord);
             }
         } else { // recognized
             if (posTag != null && posTag.length() > 0) {
@@ -662,41 +778,48 @@ public class TextPOS {
                         if (wordType == 2 || wordType == 3 || wordType == 4) { //German noun
                         	switch (wordType) {
                         	case 2:
-                                sb.append(word).append("<sup>m</sup>");
+                                sb.append(displayWord).append("<sup>m</sup>");
                                 break;
                         	case 3:
-                                sb.append(word).append("<sup>f</sup>");
+                                sb.append(displayWord).append("<sup>f</sup>");
                                 break;
                         	case 4:
-                                sb.append(word).append("<sup>n</sup>");
+                                sb.append(displayWord).append("<sup>n</sup>");
                                 break;
                         	}
                         } else {
-                            sb.append(word);
+                            sb.append(displayWord);
                         }
                     } else {
-                        sb.append(word);
+                        sb.append(displayWord);
                     }
                 } else {
-                    sb.append(word);
+                    sb.append(displayWord);
                 }
             } else { //add all unknown words
                 boolean wordHasNote = false;
                 String wordNoteLink = searchWord;
                 if (wordBases.size() == 1) {
                     Word wordBase = wordBases.iterator().next();
-                    wordNoteLink += wordBase.getInf()+"_" + wordBase.getType();
+                    wordNoteLink = wordBase.getInf()+"_" + wordBase.getType();
                 }
                 if (!fb2Notes.containsKey(wordNoteLink)) { //generate note
-                    List<String> dictArticles = new ArrayList<String>();
+                    boolean bUserKnowsAll = true;
                     for (Word w : wordBases) {
                         if (!w.isUserKnows()) {
+                            bUserKnowsAll = false;
+                            break;
+                        }
+                    }
+                    if (!bUserKnowsAll) {
+                        List<String> dictArticles = new ArrayList<>();
+                        for (Word w : wordBases) {
                             StringBuilder sbDictArticle = new StringBuilder();
                             if (textDict.containsKey(w)) {
                                 for (String s : textDict.get(w)) {
                                     if (s != null && s.length() > 0) {
                                         if (sbDictArticle.length() > 0) {
-                                            sbDictArticle.append(", ");
+                                            sbDictArticle.append("</p><p>•");
                                         }
                                         sbDictArticle.append(s);
                                     }
@@ -714,50 +837,40 @@ public class TextPOS {
                                 }
                             }
                         }
-                    }
-                    StringBuilder dictArticle = new StringBuilder();
-                    for (String s : dictArticles) {
-                        dictArticle.append("<p>");
-                        dictArticle.append(s);
-                        dictArticle.append("</p>");
-                    }
+                        StringBuilder dictArticle = new StringBuilder();
+                        for (String s : dictArticles) {
+                            dictArticle.append("<p>");
+                            dictArticle.append(s);
+                            dictArticle.append("</p>");
+                        }
 
-                    if (dictArticle.toString().trim().length() > 0) {
-                        fb2Notes.put(wordNoteLink, dictArticle.toString());
-                        wordHasNote = true;
+                        if (dictArticle.toString().trim().length() > 0) {
+                            fb2Notes.put(wordNoteLink, dictArticle.toString());
+                            wordHasNote = true;
+                        }
                     }
-                } else {
+                } else { // note exists
                     wordHasNote = true;
                 }
                 sb.append(word);
-                boolean addNoteLink = false;
                 if (wordBases.size() == 1) {
                     int wordType = wordBases.iterator().next().getType();
                     if (lang.getLanguage().equals("de")) {
-                        if (wordType == 2 || wordType == 3 || wordType == 4) { //German noun
-                        	switch (wordType) {
-                        	case 2:
-                                sb.append("<sup>m</sup>");
-                                break;
-                        	case 3:
-                                sb.append("<sup>f</sup>");
-                                break;
-                        	case 4:
-                                sb.append("<sup>n</sup>");
-                                break;
-                        	}
-                            addNoteLink = true;
-                        } else {
-                            addNoteLink = true;
+                        switch (wordType) {
+                        case 2:
+                            sb.append("<sup>m</sup>");
+                            break;
+                        case 3:
+                            sb.append("<sup>f</sup>");
+                            break;
+                        case 4:
+                            sb.append("<sup>n</sup>");
+                            break;
                         }
-                    } else {
-                        addNoteLink = true;
                     }
-                } else {
-                    addNoteLink = true;
                 }
-                if (wordHasNote && addNoteLink) {
-                    sb.append(" <a l:href=\"#" + (wordNoteLink) + "\" type=\"note\">*</a>");
+                if (wordHasNote) {
+                    sb.append(" <a l:href=\"#").append(wordNoteLink).append("\" type=\"note\">*</a>");
                 }
             }
         }
@@ -816,7 +929,7 @@ public class TextPOS {
                 }
             }else { //add all unknown words
                 //StringBuffer dictArticle = new StringBuffer();
-                List<String> dictArticles = new ArrayList<String>();
+                List<String> dictArticles = new ArrayList<>();
                 for (Word w : wordBases) {
                     if (!w.isUserKnows()) {
                         if (textDict.containsKey(w)) {
@@ -855,19 +968,15 @@ public class TextPOS {
     }
 
     public List<TChunk> getAsChunks(boolean ignoreCase) {
-        List<TChunk> ret = new ArrayList<TChunk>();
+        List<TChunk> ret = new ArrayList<>();
         int sentInd = 0;
         for(SentencePOS sent : sentences){
             if (sent.isNewParagraph()) {
                 if (sentInd>0) {
-                    // TChunk paragraph "</p><p>"
-                    //TChunk chunk = new TChunk("</p><p>");
                     TChunk chunk = new TChunk("<br/><br/>");
                     chunk.setId(-1);
                     ret.add(chunk);
                 } else {
-                    // TChunk paragraph "<p>"
-                    //TChunk chunk = new TChunk("<p>");
                     TChunk chunk = new TChunk("<br/><br/>");
                     chunk.setId(-1);
                     ret.add(chunk);
@@ -876,10 +985,6 @@ public class TextPOS {
             ret.addAll(sent.getAsChunks(this, ignoreCase));
             sentInd++;
         }
-        // TChunk paragraph "</p>"
-//        TChunk chunk = new TChunk("</p>");
-//        chunk.setId(-1);
-//        ret.add(chunk);
         return ret;
     }
 

@@ -10,10 +10,7 @@
 
 package org.linguisto.learn.db;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
 
 import org.linguisto.learn.DictUser;
@@ -30,6 +27,9 @@ public class DbDictionary implements org.linguisto.learn.db.Dictionary {
 	private Connection ce;
 
     private Map<String, List<TranslationDictionary>> trDictsMap;
+
+    /* shows whether table inf has field rank. */
+    boolean bInfHasRank = false;
 
     public DbDictionary() {
     }
@@ -59,9 +59,20 @@ public class DbDictionary implements org.linguisto.learn.db.Dictionary {
 		List<String> ret = new ArrayList<String>();
 		//<lang>_inf
 		String sTable = "inf";
-		String sql = "select * from " + sTable + " where id = -1";
+		String sql = "select * from " + sTable + " LIMIT 1";
 		try {
-			c.createStatement().executeQuery(sql);
+            ResultSet rs = c.prepareStatement(sql).executeQuery();
+
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int columnCount = rsmd.getColumnCount();
+            for (int i = 1; i <= columnCount && !bInfHasRank; i++ ) {
+                String name = rsmd.getColumnName(i);
+                if ("rank".equalsIgnoreCase(name)) {
+                    bInfHasRank = true;
+                }
+            }
+
+            rs.close();
 		} catch (SQLException e) {
 			ret.add(e.getMessage());
 		}
@@ -107,32 +118,21 @@ public class DbDictionary implements org.linguisto.learn.db.Dictionary {
 		return ret;
 	}
 
-    /** 
-	 * implementation of TranslatorInterface#getBaseForm
-	 * @see org.linguisto.learn.db.Dictionary#getBaseForm(String, java.util.Locale, boolean)
-	 */
-	public List<Word> getBaseForm(Connection c, String wf, Locale lang, boolean ignoreCase) {
-		List<Word> ret = new ArrayList<Word>();
-		String prefix = lang.getLanguage() + "_";
-		try {
-			ret = getBaseForm(c, wf, prefix, ignoreCase);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return ret;
-	}
-
     public List<Word> getBaseForm(String wf, Locale lang, boolean ignoreCase) {
         return getBaseForm(ce, wf, lang, ignoreCase);
     }
 
-    private List<Word> getBaseForm(Connection c, String wf, String prefix, boolean ignoreCase) throws SQLException {
-		List<Word> ret = new ArrayList<Word>();
-        String sql = "select distinct inf.* from "+prefix+"wf wf, inf"
-                + " where wf.wf = ? and wf.fk_inf = inf.id ";
+    /**
+     * implementation of TranslatorInterface#getBaseForm
+     * @see org.linguisto.learn.db.Dictionary#getBaseForm(String, java.util.Locale, boolean)
+     */
+    public List<Word> getBaseForm(Connection c, String wf, Locale lang, boolean ignoreCase) {
+		List<Word> ret = new ArrayList<>();
+        String sql = "select distinct inf.* from "+lang.getLanguage()+"_wf wf, inf"
+                + " where wf.wf = ? and wf.fk_inf = inf.id and inf.lang = ?";
         if (ignoreCase) {
-            sql = "select distinct inf.* from "+prefix+"wf wf, inf"
-                    + " where lower(wf.wf) = ? and wf.fk_inf = inf.id ";
+            sql = "select distinct inf.* from "+lang.getLanguage()+"_wf wf, inf"
+                    + " where wf.wf_ci = ? and wf.fk_inf = inf.id and inf.lang = ?";
         }
 		//MySql make case-insensitive search
 		//Case will be checked in loop
@@ -140,31 +140,28 @@ public class DbDictionary implements org.linguisto.learn.db.Dictionary {
 		ResultSet rs = null;
 		try {
 			ps = c.prepareStatement(sql);
-			ps.setString(1, wf);
+            ps.setString(1, wf);
+            ps.setString(2, lang.getLanguage());
 			rs = ps.executeQuery();
 			long id;
 			int type;
+            int rank = 99999;
 			String inf;
-			String lang;
 			while(rs.next()) {
 				id = rs.getLong("id");
 				inf = rs.getString("inf");
 				type = rs.getInt("type");
-				lang = rs.getString("lang");
-                if (ignoreCase) { //case insensitive check
-                    Word w = new Word(id, inf);
-                    w.setType(type);
-                    w.setLanguage(lang);
-                    ret.add(w);
-                } else { //case sensitive check
-                    if (Character.isUpperCase(inf.charAt(0)) == Character.isUpperCase(wf.charAt(0))) {
-                        Word w = new Word(id, inf);
-                        w.setType(type);
-                        w.setLanguage(lang);
-                        ret.add(w);
-                    }
+                if (bInfHasRank) {
+                    rank = rs.getInt("rank");
                 }
+                Word w = new Word(id, inf);
+                w.setType(type);
+                w.setLanguage(lang.getLanguage());
+                w.setRank(rank);
+                ret.add(w);
 			}
+        } catch (SQLException e) {
+            e.printStackTrace();
 		} finally {
 			DAO.closeResultSet(rs);
 			DAO.closeStatement(ps);

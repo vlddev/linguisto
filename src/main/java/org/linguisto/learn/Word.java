@@ -23,6 +23,7 @@ public class Word {
 	int type;
 	String inf;
 	String language;
+    private int rank;
     boolean userKnows = false;
 	List<WordForm> wfList = null;
 	
@@ -70,10 +71,17 @@ public class Word {
 		this.type = type;
 	}
 
-	public List<WordForm> getWfList() {
+    public int getRank() {
+        return rank;
+    }
+
+    public void setRank(int rank) {
+        this.rank = rank;
+    }
+
+    public List<WordForm> getWfList() {
 		return wfList;
 	}
-	
 
 	public void setWfList(List<WordForm> wfList) {
 		this.wfList = wfList;

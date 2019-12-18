@@ -11,6 +11,7 @@
 package org.linguisto.learn.db;
 
 import java.sql.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DAO {
@@ -29,15 +30,15 @@ public class DAO {
                     con = DriverManager.getConnection(dbUrl,user,password);
                 else
                     con = DriverManager.getConnection(dbUrl);
-                System.out.println("Connected to DB "+dbUrl);
+                logger.info("Connected to DB "+dbUrl);
                 con.setAutoCommit(false);
             }catch(SQLException e){
                 e.printStackTrace();
             }
         }catch(Exception e){
-            System.out.println("Can't load driver "+jdbcDriver);
-            System.out.println("Exception "+e.getClass().getName()+
-            " in makeConnection : "+e.getMessage());
+            logger.severe("Can't load driver "+jdbcDriver);
+            logger.log(Level.SEVERE,
+                    "Exception "+e.getClass().getName()+" in makeConnection : "+e.getMessage(), e);
         }
         return con;
     }

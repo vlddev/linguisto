@@ -320,7 +320,6 @@ public class Text {
         for (String word : unknownWords) {
             ret.append(word).append("\n");
         }
-
         return ret.toString();
     }
 
@@ -430,7 +429,7 @@ public class Text {
         StringBuilder sbRet = new StringBuilder();
         //header of fb2 file
         sbRet.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-        sbRet.append("<FictionBook xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">");
+        sbRet.append("<FictionBook xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\" xmlns:l=\"http://www.w3.org/1999/xlink\">");
         sbRet.append("\n<description><title-info><lang>"+lang.getLanguage()+"</lang></title-info></description>");
         sbRet.append("\n<body>\n<section>");
 
